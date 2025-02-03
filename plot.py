@@ -13,6 +13,7 @@ import yaml
 import argparse
 import random
 import inspect
+from tqdm import tqdm
 
 RED = "#D17171"
 YELLOW = "#F3A451"
@@ -67,7 +68,7 @@ def template():
     # plot results
     fig, ax = plt.subplots(1, 1, figsize=FIGSIZE) # , sharex=False, gridspec_kw={'height_ratios': [1, 2, 3, 2]}, figsize=(10,7))
     fig.subplots_adjust(hspace=HSPACE)
-    if type(ax) is not list:
+    if type(ax) is not list and type(ax) is not np.ndarray:
         ax = [ax]
 
     ax[0].plot(x, y, color=BLUE, label="Template", linewidth=LINEWIDTH, linestyle="solid", clip_on=False) # , drawstyle='steps-post'
@@ -107,6 +108,164 @@ def template():
         plt.clf()
     plt.clf()
     plt.close()
+
+
+def stdp():
+    # generate random data
+    # Parameters
+    h=0.001 # timestep width
+    t_sim=100 # timesteps
+    lambda_j = 100 # presyn decay rate
+    lambda_i = 100 # postsyn decay rate
+    spike_train_j = [1,5,10,20,21]
+    spike_train_i = [11,18,40]
+    w_init = 0.0 # synaptic weight
+    w_max = 5.0
+    mu_ltd = 1.0
+    mu_ltp = 1.0
+    lr = 0.01 # learning rate -> scales weight update (nest: lambda_)
+    lr_ltd_scale = 1e5 # learning rate scale for LTD update (nest: alpha_)
+    d = 0.0 # synaptic delay
+
+    # Initialize spike trains
+    spikes_j = np.zeros(t_sim)
+    spikes_j[spike_train_j] = 1
+    spikes_i = np.zeros(t_sim)
+    spikes_i[spike_train_i] = 1
+
+    # Exact integration
+    kj,ki = np.zeros(t_sim),np.zeros(t_sim)
+    ki_event, kj_event = np.zeros(t_sim),np.zeros(t_sim)
+    w = np.zeros(t_sim)
+    last_spiketime_j, last_spiketime_i = 0, 0
+    for t in tqdm(range(1,t_sim-1), desc="# Time-driven exact integration"):
+        # integration of spike traces for reference
+        kj[t] = np.exp(-h*lambda_j)*kj[t-1] + ((1-np.exp(-h*lambda_j))/lambda_j)*spikes_j[t]
+        ki[t] = np.exp(-h*lambda_i)*ki[t-1] + ((1-np.exp(-h*lambda_i))/lambda_i)*spikes_i[t]
+
+        # event-based update of spike traces
+        if spikes_j[t]==1:
+            if last_spiketime_j==0:
+                kj_event[t] = (1-np.exp(-h*lambda_j))/lambda_j
+            else:
+                kj_event[t] = np.exp(-h*(t - last_spiketime_j)*lambda_j)*kj_event[last_spiketime_j] + (1-np.exp(-h*lambda_j))/lambda_j
+            last_spiketime_j = t
+
+        if spikes_i[t]==1:
+            if last_spiketime_i==0:
+                ki_event[t] = (1-np.exp(-h*lambda_i))/lambda_i
+            else:
+                ki_event[t] = np.exp(-h*(t - last_spiketime_i)*lambda_i)*ki_event[last_spiketime_i] + (1-np.exp(-h*lambda_i))/lambda_i
+            last_spiketime_i = t
+
+        # stdp
+        w[t] = w[t-1]
+        ## ltd
+        if spikes_j[t]==1:
+            # get current ki
+            ki_t = np.exp(-h*(t-last_spiketime_i)*lambda_i)*ki_event[last_spiketime_i]
+            w_old = w[t]
+            w[t] = (w[t]/w_max) - lr_ltd_scale*lr*np.pow(w[t]/w_max,mu_ltd)*ki_t
+            w[t] = w[t]*w_max if w[t]>0.0 else 0.0
+            print(f"LTD @ t={t}: dw = {w[t]-w_old}")
+        ## ltp
+        if spikes_i[t]==1:
+            # get current kj
+            kj_t = np.exp(-h*(t-last_spiketime_j)*lambda_j)*kj_event[last_spiketime_j]
+            w_old = w[t]
+            w[t] = (w[t]/w_max) + lr*np.pow(1-w[t]/w_max,mu_ltp)*kj_t
+            w[t] = w[t]*w_max if w[t]<1.0 else w_max
+            print(f"LTP @ t={t}: dw = {w[t]-w_old}")
+
+    # plot results
+    X_AXIS_COORDS = (0.0, -0.35)
+    Y_AXIS_COORDS = (-0.035, 0.5)
+
+    fig, ax = plt.subplots(5, 1, sharex=True, gridspec_kw={'height_ratios': [0.5, 1, 0.5, 1, 1]}, figsize=FIGSIZE)
+    fig.subplots_adjust(hspace=HSPACE)
+    if type(ax) is not list and type(ax) is not np.ndarray:
+        ax = [ax]
+
+    # j spikes
+    ax[0].scatter(np.where(spikes_j > 0)[0], spikes_j[spikes_j > 0], label="j spikes", s=100, marker='.', color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False)
+    ## y axis
+    ax[0].set_yticks([])
+    ax[0].set_ylim(0, 2)
+    ax[0].yaxis.set_label_coords(*Y_AXIS_COORDS)
+    ax[0].set_ylabel("j", fontsize=FONTSIZE, fontweight='bold')
+    ## other axes
+    ax[0].spines['left'].set_visible(False)
+    ax[0].spines['bottom'].set_visible(False)
+    ax[0].spines['top'].set_visible(False)
+    ax[0].spines['right'].set_visible(False)
+
+    # j trace
+    ax[1].plot(kj, label="kj exact, time-based", color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False)
+    ## y axis
+    ax[1].set_yticks([])
+    ax[1].yaxis.set_label_coords(*Y_AXIS_COORDS)
+    ax[1].set_ylabel("kj", fontsize=FONTSIZE, fontweight='bold')
+    ## other axes
+    ax[1].spines['left'].set_visible(False)
+    ax[1].spines['bottom'].set_visible(False)
+    ax[1].spines['top'].set_visible(False)
+    ax[1].spines['right'].set_visible(False)
+
+    # i spikes
+    ax[2].scatter(np.where(spikes_i > 0)[0], spikes_i[spikes_i > 0], label="i spikes", s=100, marker='.', color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False)
+    ## y axis
+    ax[2].set_yticks([])
+    ax[2].set_ylim(0, 2)
+    ax[2].yaxis.set_label_coords(*Y_AXIS_COORDS)
+    ax[2].set_ylabel("i", fontsize=FONTSIZE, fontweight='bold')
+    ## other axes
+    ax[2].spines['left'].set_visible(False)
+    ax[2].spines['bottom'].set_visible(False)
+    ax[2].spines['top'].set_visible(False)
+    ax[2].spines['right'].set_visible(False)
+
+    # i trace
+    ax[3].plot(ki, label="ki exact, time-based", color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False)
+    ## y axis
+    ax[3].set_yticks([])
+    ax[3].yaxis.set_label_coords(*Y_AXIS_COORDS)
+    ax[3].set_ylabel("ki", fontsize=FONTSIZE, fontweight='bold')
+    ## other axes
+    ax[3].spines['left'].set_visible(False)
+    ax[3].spines['bottom'].set_visible(False)
+    ax[3].spines['top'].set_visible(False)
+    ax[3].spines['right'].set_visible(False)
+
+    # dw
+    ax[4].plot(w, label="ki exact, time-based", color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False, drawstyle='steps-post')
+    ## y axis
+    ax[4].set_yticks([])
+    ax[4].yaxis.set_label_coords(*Y_AXIS_COORDS)
+    ax[4].set_ylabel("w", fontsize=FONTSIZE, fontweight='bold')
+    ## x axis
+    ax[4].set_xticks([0, len(w)])
+    ax[4].set_xlim(0, len(w))
+    ax[4].xaxis.set_label_coords(*X_AXIS_COORDS)
+    ax[4].set_xlabel("Time [ms]", fontsize=FONTSIZE, fontweight='bold')
+    #ax[4].xaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[4].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE)
+    ax[4].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH)
+    ax[4].spines['bottom'].set_position(BOTTOM_POS)
+    ax[4].spines['bottom'].set_linewidth(BOTTOM_WIDTH)
+    ## other axes
+    ax[4].spines['left'].set_visible(False)
+    ax[4].spines['top'].set_visible(False)
+    ax[4].spines['right'].set_visible(False)
+
+    Path(OUTPUT).mkdir(parents=True, exist_ok=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".png", format='png', dpi=PNG_DPI, transparent=True)
+    if PLOT:
+        plt.show()
+        plt.clf()
+    plt.clf()
+    plt.close()    
 
 
 def lif():
