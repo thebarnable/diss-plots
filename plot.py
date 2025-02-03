@@ -65,7 +65,7 @@ def template():
     y[y<0] *= -1
 
     # plot results
-    fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
+    fig, ax = plt.subplots(1, 1, figsize=FIGSIZE) # , sharex=False, gridspec_kw={'height_ratios': [1, 2, 3, 2]}, figsize=(10,7))
     fig.subplots_adjust(hspace=HSPACE)
     if type(ax) is not list:
         ax = [ax]
@@ -129,46 +129,51 @@ def lif():
     v_thresh = 1.0 
     w        = 8.0
 
-    time_axis = list(range(0,K))
+    x = list(range(0,K))
 
     for k in range(K-1):
         v[k+1] = alpha * v[k] + (1-alpha) * w * o_in[k] - alpha * o_out[k] * v[k]
         if v[k+1] > v_thresh:
             o_out[k+1] = 1
 
-    fig, ax = plt.subplots(1, 1, figsize=(10,6))
-    fig.subplots_adjust(hspace=0.5)
+    # plot results
+    fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
+    fig.subplots_adjust(hspace=HSPACE)
+    if type(ax) is not list:
+        ax = [ax]
 
-    ax.plot(time_axis, v, color=BLUE, label="BSNN", linewidth=2.5, linestyle="solid", clip_on=False) # , drawstyle='steps-post'
+    ax[0].plot(x, v, color=BLUE, label="LIF Neuron", linewidth=LINEWIDTH, linestyle="solid", clip_on=False) # , drawstyle='steps-post'
 
     ## x axis
-    ax.set_xticks([0,K/2,K])
-    ax.set_xlim(0, K)
-    ax.tick_params(axis='x', length=15, width=2.0, labelsize=15)
-    ax.tick_params(axis='x', which='minor', length=5, width=0.5)
-    ax.spines['bottom'].set_position(('outward', 15))
-    ax.spines['bottom'].set_linewidth(2.0)
-    ax.xaxis.set_label_coords(0.0, -0.15)
-    ax.set_xlabel("Time [ms]", fontsize=15, fontweight='bold')
+    ax[0].set_xticks([0, max(x)/2, max(x)])
+    ax[0].set_xlim(0, max(x))
+    ax[0].xaxis.set_label_coords(0.0, -0.11)
+    ax[0].set_xlabel("Time [ms]", fontsize=FONTSIZE, fontweight='bold')
+    ax[0].xaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[0].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE)
+    ax[0].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH)
+    ax[0].spines['bottom'].set_position(BOTTOM_POS)
+    ax[0].spines['bottom'].set_linewidth(BOTTOM_WIDTH)
 
     ## y axis
-    ax.set_yticks([0, v_thresh, v_thresh*2.])
-    ax.set_ylim(0, v_thresh*2.)
-    ax.tick_params(axis='y', length=15, width=2.0, labelsize=15)
-    ax.tick_params(axis='y', which='minor', length=5, width=0.5)
-    ax.spines['left'].set_position(('outward', 15))
-    ax.spines['left'].set_linewidth(2.0)
-    ax.yaxis.set_label_coords(-0.1, 0.5)
-    ax.set_ylabel("Potential U(t)", fontsize=15, fontweight='bold')
+    ax[0].set_yticks([0, v_thresh, v_thresh*2.])
+    ax[0].set_ylim(0, v_thresh*2.)
+    ax[0].yaxis.set_label_coords(-0.11, 0.5)
+    ax[0].set_ylabel("Membrane Voltage u(t)", fontsize=FONTSIZE, fontweight='bold')
+    ax[0].yaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[0].tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE)
+    ax[0].tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH)
+    ax[0].spines['left'].set_position(LEFT_POS)
+    ax[0].spines['left'].set_linewidth(LEFT_WIDTH)
 
     ## other axes
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
+    ax[0].spines['top'].set_visible(False)
+    ax[0].spines['right'].set_visible(False)
 
     Path(OUTPUT).mkdir(parents=True, exist_ok=True)
-    plt.savefig(OUTPUT+"/lif.pdf", format='pdf', transparent=True)
-    plt.savefig(OUTPUT+"/lif.svg", format='svg', transparent=True)
-    plt.savefig(OUTPUT+"/lif.png", format='png', dpi=300, transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".png", format='png', dpi=PNG_DPI, transparent=True)
     if PLOT:
         plt.show()
         plt.clf()
