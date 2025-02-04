@@ -270,7 +270,7 @@ def stdp():
 
 def lif():
     h     = 1 # ms
-    K     = 100 # ms
+    K     = 101 # ms
     v     = np.zeros([K, 1])
     r     = np.zeros([K, 1])
     o_out = np.zeros([K, 1])
@@ -286,48 +286,87 @@ def lif():
     o_in[63]  = 1
     o_in[67]  = 1
     v_thresh = 1.0 
-    w        = 8.0
+    w        = 0.7/(1-alpha)
 
     x = list(range(0,K))
 
     for k in range(K-1):
         v[k+1] = alpha * v[k] + (1-alpha) * w * o_in[k] - alpha * o_out[k] * v[k]
         if v[k+1] > v_thresh:
+            v[k+1] = v_thresh
             o_out[k+1] = 1
 
+    # filter v to make smoother
+    #b, a = butter(4, 0.4, btype='low', analog=False)
+    #print(v.shape)
+    #v = filtfilt(b, a, v[:,0])
+
     # plot results
-    fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
-    fig.subplots_adjust(hspace=HSPACE)
-    if type(ax) is not list:
+    fig, ax = plt.subplots(3, 1, figsize=FIGSIZE, sharex=True,gridspec_kw={'height_ratios': [0.2, 1, 0.2]})
+    fig.subplots_adjust(hspace=0.05)
+    if type(ax) is not list and type(ax) is not np.ndarray:
         ax = [ax]
 
-    ax[0].plot(x, v, color=BLUE, label="LIF Neuron", linewidth=LINEWIDTH, linestyle="solid", clip_on=False) # , drawstyle='steps-post'
-
+    ## input spikes
+    ax[0].scatter(np.where(o_in > 0)[0], o_in[o_in>0], s=100, marker=".", color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False)
     ## x axis
-    ax[0].set_xticks([0, max(x)/2, max(x)])
-    ax[0].set_xlim(0, max(x))
-    ax[0].xaxis.set_label_coords(0.0, -0.11)
-    ax[0].set_xlabel("Time [ms]", fontsize=FONTSIZE, fontweight='bold')
-    ax[0].xaxis.set_minor_locator(AutoMinorLocator(10))
-    ax[0].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE)
-    ax[0].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH)
-    ax[0].spines['bottom'].set_position(BOTTOM_POS)
-    ax[0].spines['bottom'].set_linewidth(BOTTOM_WIDTH)
-
+    ax[0].set_xticks([])
+    ax[0].tick_params(axis='x', bottom=False, labelbottom=False)
+    ax[0].tick_params(axis='x', which='minor', bottom=False, labelbottom=False)
+    ax[0].spines['bottom'].set_visible(False)
     ## y axis
-    ax[0].set_yticks([0, v_thresh, v_thresh*2.])
-    ax[0].set_ylim(0, v_thresh*2.)
-    ax[0].yaxis.set_label_coords(-0.11, 0.5)
-    ax[0].set_ylabel("Membrane Voltage u(t)", fontsize=FONTSIZE, fontweight='bold')
-    ax[0].yaxis.set_minor_locator(AutoMinorLocator(10))
-    ax[0].tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE)
-    ax[0].tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH)
-    ax[0].spines['left'].set_position(LEFT_POS)
-    ax[0].spines['left'].set_linewidth(LEFT_WIDTH)
-
+    ax[0].set_yticks([])
+    ax[0].tick_params(axis='y', bottom=False, labelbottom=False)
+    ax[0].spines['left'].set_visible(False)
+    ax[0].yaxis.set_label_coords(-0.06, 0.5)
+    ax[0].set_ylabel(r"$\sum_j \boldsymbol{o}_\boldsymbol{j}\boldsymbol{(t)}$", fontsize=FONTSIZE, fontweight='bold')
     ## other axes
     ax[0].spines['top'].set_visible(False)
     ax[0].spines['right'].set_visible(False)
+
+    ## voltage
+    ax[1].plot(x, v, color=BLUE, label="LIF Neuron", linewidth=LINEWIDTH, linestyle="solid", clip_on=False) # , drawstyle='steps-post'
+    ax[1].axhline(y = 1.0, color=GREY, ls='--', lw=2, clip_on=False)
+    ## x axis
+    ax[1].set_xticks([])
+    ax[1].tick_params(axis='x', bottom=False, labelbottom=False)
+    ax[1].tick_params(axis='x', which='minor', bottom=False, labelbottom=False)
+    ax[1].spines['bottom'].set_visible(False)
+    ## y axis
+    ax[1].set_yticks([0, v_thresh*1.0])
+    ax[1].set_ylim(0, v_thresh*1.0)
+    ax[1].yaxis.set_label_coords(-0.08, 0.5)
+    ax[1].set_ylabel(r"$\boldsymbol{u(t)}/\boldsymbol{u}_\boldsymbol{t}$", fontsize=FONTSIZE) # , fontweight='bold') # uₜ
+    ax[1].yaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[1].tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE)
+    ax[1].tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH)
+    ax[1].spines['left'].set_position(LEFT_POS)
+    ax[1].spines['left'].set_linewidth(LEFT_WIDTH)
+    ## other axes
+    ax[1].spines['top'].set_visible(False)
+    ax[1].spines['right'].set_visible(False)
+
+    ## output spikes
+    ax[2].scatter(np.where(o_out > 0)[0], o_out[o_out>0], s=100, marker=".", color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False)
+    ## x axis
+    ax[2].set_xticks([0, max(x)/2, max(x)])
+    ax[2].set_xlim(0, max(x))
+    ax[2].xaxis.set_label_coords(0.0, -0.11)
+    #ax[2].set_xlabel(r"$\boldsymbol{t}$ [ms]", fontsize=FONTSIZE, fontweight='bold')
+    ax[2].xaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[2].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE)
+    ax[2].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH)
+    ax[2].spines['bottom'].set_position(BOTTOM_POS)
+    ax[2].spines['bottom'].set_linewidth(BOTTOM_WIDTH)
+    ## y axis
+    ax[2].set_yticks([])
+    ax[2].tick_params(axis='y', bottom=False, labelbottom=False)
+    ax[2].spines['left'].set_visible(False)
+    ax[2].yaxis.set_label_coords(-0.07, 0.5)
+    ax[2].set_ylabel(r"$\boldsymbol{o}_\boldsymbol{i}\boldsymbol{(t)}$", fontsize=FONTSIZE, fontweight='bold')
+    ## other axes
+    ax[2].spines['top'].set_visible(False)
+    ax[2].spines['right'].set_visible(False)
 
     Path(OUTPUT).mkdir(parents=True, exist_ok=True)
     plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
