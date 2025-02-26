@@ -4,6 +4,7 @@ from matplotlib.ticker import FuncFormatter, AutoMinorLocator
 from scipy.signal import butter, filtfilt
 from scipy.spatial.distance import euclidean, correlation #cosine, cityblock
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset, zoomed_inset_axes
+from scipy.interpolate import interp1d
 import numpy as np
 import os
 import sys
@@ -134,14 +135,16 @@ def stdp():
     spikes_i[spike_train_i] = 1
 
     # Exact integration
-    kj,ki = np.zeros(t_sim),np.zeros(t_sim)
+    kj, ki = [], []
     ki_event, kj_event = np.zeros(t_sim),np.zeros(t_sim)
     w = np.zeros(t_sim)
     last_spiketime_j, last_spiketime_i = 0, 0
     for t in tqdm(range(1,t_sim-1), desc="# Time-driven exact integration"):
         # integration of spike traces for reference
-        kj[t] = np.exp(-h*lambda_j)*kj[t-1] + ((1-np.exp(-h*lambda_j))/lambda_j)*spikes_j[t]
-        ki[t] = np.exp(-h*lambda_i)*ki[t-1] + ((1-np.exp(-h*lambda_i))/lambda_i)*spikes_i[t]
+        kj.append(np.exp(-h*lambda_j)*kj[t-1])
+        ki.append(np.exp(-h*lambda_i)*ki[t-1])
+        kj.append(kj[-1] + ((1-np.exp(-h*lambda_j))/lambda_j)*spikes_j[t])
+        ki.append(ki[-1] + ((1-np.exp(-h*lambda_i))/lambda_i)*spikes_i[t])
 
         # event-based update of spike traces
         if spikes_j[t]==1:
@@ -193,6 +196,10 @@ def stdp():
     ax[0].set_ylim(0, 2)
     ax[0].yaxis.set_label_coords(*Y_AXIS_COORDS)
     ax[0].set_ylabel("j", fontsize=FONTSIZE, fontweight='bold')
+    ## x axis
+    ax[0].set_xticks([])
+    ax[0].tick_params(axis='x', bottom=False, labelbottom=False)
+    ax[0].tick_params(axis='x', which='minor', bottom=False, labelbottom=False)
     ## other axes
     ax[0].spines['left'].set_visible(False)
     ax[0].spines['bottom'].set_visible(False)
@@ -200,11 +207,15 @@ def stdp():
     ax[0].spines['right'].set_visible(False)
 
     # j trace
-    ax[1].plot(kj, label="kj exact, time-based", color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False)
+    ax[1].plot(np.arange(len(kj)), kj, label="kj exact, time-based", color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False)
     ## y axis
     ax[1].set_yticks([])
     ax[1].yaxis.set_label_coords(*Y_AXIS_COORDS)
     ax[1].set_ylabel("kj", fontsize=FONTSIZE, fontweight='bold')
+    ## x axis
+    ax[1].set_xticks([])
+    ax[1].tick_params(axis='x', bottom=False, labelbottom=False)
+    ax[1].tick_params(axis='x', which='minor', bottom=False, labelbottom=False)    
     ## other axes
     ax[1].spines['left'].set_visible(False)
     ax[1].spines['bottom'].set_visible(False)
@@ -218,6 +229,10 @@ def stdp():
     ax[2].set_ylim(0, 2)
     ax[2].yaxis.set_label_coords(*Y_AXIS_COORDS)
     ax[2].set_ylabel("i", fontsize=FONTSIZE, fontweight='bold')
+    ## x axis
+    ax[2].set_xticks([])
+    ax[2].tick_params(axis='x', bottom=False, labelbottom=False)
+    ax[2].tick_params(axis='x', which='minor', bottom=False, labelbottom=False)    
     ## other axes
     ax[2].spines['left'].set_visible(False)
     ax[2].spines['bottom'].set_visible(False)
@@ -230,6 +245,10 @@ def stdp():
     ax[3].set_yticks([])
     ax[3].yaxis.set_label_coords(*Y_AXIS_COORDS)
     ax[3].set_ylabel("ki", fontsize=FONTSIZE, fontweight='bold')
+    ## x axis
+    ax[3].set_xticks([])
+    ax[3].tick_params(axis='x', bottom=False, labelbottom=False)
+    ax[3].tick_params(axis='x', which='minor', bottom=False, labelbottom=False)    
     ## other axes
     ax[3].spines['left'].set_visible(False)
     ax[3].spines['bottom'].set_visible(False)
@@ -307,6 +326,9 @@ def lif():
     if type(ax) is not list and type(ax) is not np.ndarray:
         ax = [ax]
 
+    FONTSIZE = 20
+    Y_MAJORTICKS_LABELSIZE = 25
+    X_MAJORTICKS_LABELSIZE = 25
     ## input spikes
     ax[0].scatter(np.where(o_in > 0)[0], o_in[o_in>0], s=100, marker=".", color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False)
     ## x axis
