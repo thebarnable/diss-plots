@@ -1,6 +1,8 @@
 import torch
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter, AutoMinorLocator
+from matplotlib.patches import FancyArrow
+from matplotlib.lines import Line2D
 from scipy.signal import butter, filtfilt
 from scipy.spatial.distance import euclidean, correlation #cosine, cityblock
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset, zoomed_inset_axes
@@ -99,6 +101,124 @@ def template():
     ## other axes
     ax[0].spines['top'].set_visible(False)
     ax[0].spines['right'].set_visible(False)
+
+    Path(OUTPUT).mkdir(parents=True, exist_ok=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".png", format='png', dpi=PNG_DPI, transparent=True)
+    if PLOT:
+        plt.show()
+        plt.clf()
+    plt.clf()
+    plt.close()
+
+
+def sg():
+    # override variables
+    LINEWIDTH = 8.5
+    X_MAJORTICKS_WIDTH = 4.5
+    X_MAJORTICKS_LENGTH = 20
+    BOTTOM_WIDTH = 4.5
+    FIGSIZE=(8,5)
+
+    # generate random data
+    x = np.array([np.linspace(-2, 0, 50), np.linspace(0, 2, 50)]).flatten()
+    y = np.array([np.zeros((50,)), 0.5*np.ones((50,))]).flatten()
+
+    # plot results
+    fig, ax = plt.subplots(1, 1, figsize=FIGSIZE) # , sharex=False, gridspec_kw={'height_ratios': [1, 2, 3, 2]}, figsize=(10,7))
+    #fig.subplots_adjust(hspace=HSPACE)
+    if type(ax) is not list and type(ax) is not np.ndarray:
+        ax = [ax]
+
+    ax[0].plot(x, y, color=BLACK, label="Template", linewidth=LINEWIDTH, linestyle="solid", clip_on=False) # , drawstyle='steps-post'
+
+    ## y axis
+    ax[0].set_yticks([0, 0.6], ["", ""])
+    ax[0].set_ylim(0,0.6)
+    ax[0].yaxis.set_label_coords(*(0.0, 0.0))
+    #ax[0].set_ylabel("u", fontsize=FONTSIZE, fontweight='bold')
+    #ax[4].xaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[0].tick_params(axis='y', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE)
+    #ax[4].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH)
+    ax[0].spines['left'].set_position(BOTTOM_POS)
+    ax[0].spines['left'].set_linewidth(BOTTOM_WIDTH)
+    ## x axis
+    ax[0].set_xticks([-2, 0, 2], ["", "", ""])
+    ax[0].set_xlim(-2, 2)
+    ax[0].xaxis.set_label_coords(*(0.0, -0.2))
+    ax[0].set_xlabel("u", fontsize=FONTSIZE, fontweight='bold')
+    #ax[4].xaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[0].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE)
+    #ax[4].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH)
+    ax[0].spines['bottom'].set_position(BOTTOM_POS)
+    ax[0].spines['bottom'].set_linewidth(BOTTOM_WIDTH)
+    ## other axes
+    ax[0].spines['top'].set_visible(False)
+    ax[0].spines['right'].set_visible(False)
+
+    Path(OUTPUT).mkdir(parents=True, exist_ok=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+"_H.pdf", format='pdf', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+"_H.svg", format='svg', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+"_H.png", format='png', dpi=PNG_DPI, transparent=True)
+    # if PLOT:
+    #     plt.show()
+    #     plt.clf()
+    plt.clf()
+    plt.close()
+
+    # override variables
+    LINEWIDTH = 4.5
+    X_MAJORTICKS_WIDTH = 2.0
+    X_MAJORTICKS_LENGTH = 15
+    Y_MAJORTICKS_WIDTH = 2.0
+    Y_MAJORTICKS_LENGTH = 15
+    BOTTOM_WIDTH = 2.0
+
+    # generate SGs
+    x_rect = np.array([np.linspace(-1, -0.5, 50), 
+                  np.linspace(-0.5, 0, 50),
+                  np.linspace(0, 0.5, 50), 
+                  np.linspace(0.5, 1, 50)]).flatten()
+    y_rect = np.concatenate([np.zeros(50), 
+                        0.5*np.ones(100), 
+                        np.zeros(50)])
+    
+    tanh_sg = lambda x: 1/np.pi * 1/(1+np.pow(np.pi*x,2))
+    x_tanh = np.linspace(-1, 1, 200)
+    y_tanh = np.array([tanh_sg(x) for x in x_tanh])
+
+    # plot results
+    fig, ax = plt.subplots(1, 1, figsize=(8,7)) # , sharex=False, gridspec_kw={'height_ratios': [1, 2, 3, 2]}, figsize=(10,7))
+    #fig.subplots_adjust(hspace=HSPACE)
+    if type(ax) is not list and type(ax) is not np.ndarray:
+        ax = [ax]
+
+    l1, = ax[0].plot(x_tanh, y_tanh, color=BLUE, label="arctan", linewidth=LINEWIDTH, linestyle="solid", clip_on=False) # , drawstyle='steps-post'
+    l2, = ax[0].plot(x_rect, y_rect, color=BLUE, label="rect", linewidth=LINEWIDTH, linestyle="dotted", clip_on=False) # , drawstyle='steps-post'
+    ax[0].arrow(0, 0, 0, 0.7, head_width=0.05, head_length=0.1, fc='black', ec='black', label="rect")
+
+    l3 = Line2D([0], [0], color=BLACK, marker=">", linestyle="None", markersize=10)
+
+    ## y axis
+    ax[0].set_yticks([])
+    ax[0].set_ylim(0, 2)
+    ## x axis
+    ax[0].set_xticks([-1, 0, 1], ["", "", ""])
+    ax[0].set_xlim(-1, 1)
+    #ax[0].xaxis.set_label_coords(0.0, -0.11)
+    #ax[0].set_xlabel("x [unit]", fontsize=FONTSIZE, fontweight='bold')
+    #ax[0].xaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[0].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE)
+    #ax[0].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH)
+    ax[0].spines['bottom'].set_position(BOTTOM_POS)
+    ax[0].spines['bottom'].set_linewidth(BOTTOM_WIDTH)   
+    ## other axes
+    ax[0].spines['left'].set_visible(False)
+    ax[0].spines['top'].set_visible(False)
+    ax[0].spines['right'].set_visible(False)
+
+    ax[0].legend(handles=[l1, l2, l3], loc='upper right', bbox_to_anchor=(1.1, 0.4),fontsize=20, labels=["arctan", "rect", "H'"]) # bbox_to_anchor=(1.0, 1.25),
 
     Path(OUTPUT).mkdir(parents=True, exist_ok=True)
     plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
