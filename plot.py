@@ -255,16 +255,23 @@ def stdp():
     spikes_i[spike_train_i] = 1
 
     # Exact integration
-    kj, ki = [], []
+    kj, ki = [0], [0]
+    tj_axis, ti_axis = [0], [0]
     ki_event, kj_event = np.zeros(t_sim),np.zeros(t_sim)
     w = np.zeros(t_sim)
     last_spiketime_j, last_spiketime_i = 0, 0
     for t in tqdm(range(1,t_sim-1), desc="# Time-driven exact integration"):
         # integration of spike traces for reference
-        kj.append(np.exp(-h*lambda_j)*kj[t-1])
-        ki.append(np.exp(-h*lambda_i)*ki[t-1])
-        kj.append(kj[-1] + ((1-np.exp(-h*lambda_j))/lambda_j)*spikes_j[t])
-        ki.append(ki[-1] + ((1-np.exp(-h*lambda_i))/lambda_i)*spikes_i[t])
+        tj_axis.append(t)
+        ti_axis.append(t)
+        kj.append(np.exp(-h*lambda_j)*kj[-1])
+        ki.append(np.exp(-h*lambda_i)*ki[-1])
+        if spikes_j[t]:
+            tj_axis.append(t)
+            kj.append(kj[-1] + ((1-np.exp(-h*lambda_j))/lambda_j))
+        if spikes_i[t]:
+            ti_axis.append(t)
+            ki.append(ki[-1] + ((1-np.exp(-h*lambda_i))/lambda_i))
 
         # event-based update of spike traces
         if spikes_j[t]==1:
@@ -305,6 +312,7 @@ def stdp():
     Y_AXIS_COORDS = (-0.035, 0.5)
 
     fig, ax = plt.subplots(5, 1, sharex=True, gridspec_kw={'height_ratios': [0.5, 1, 0.5, 1, 1]}, figsize=FIGSIZE)
+    #plt.rcParams['text.usetex'] = True
     fig.subplots_adjust(hspace=HSPACE)
     if type(ax) is not list and type(ax) is not np.ndarray:
         ax = [ax]
@@ -327,17 +335,21 @@ def stdp():
     ax[0].spines['right'].set_visible(False)
 
     # j trace
-    ax[1].plot(np.arange(len(kj)), kj, label="kj exact, time-based", color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False)
+    ax[1].plot(tj_axis, kj, label="kj exact, time-based", color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False)
     ## y axis
-    ax[1].set_yticks([])
+    ax[1].set_yticks([0,max(kj)], ["", ""])
+    ax[1].set_ylim(0,max(kj))
     ax[1].yaxis.set_label_coords(*Y_AXIS_COORDS)
     ax[1].set_ylabel("kj", fontsize=FONTSIZE, fontweight='bold')
+    ax[1].tick_params(axis='y', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE)
+    ax[1].spines['left'].set_position(BOTTOM_POS)
+    ax[1].spines['left'].set_linewidth(BOTTOM_WIDTH)
     ## x axis
     ax[1].set_xticks([])
     ax[1].tick_params(axis='x', bottom=False, labelbottom=False)
     ax[1].tick_params(axis='x', which='minor', bottom=False, labelbottom=False)    
     ## other axes
-    ax[1].spines['left'].set_visible(False)
+    #ax[1].spines['left'].set_visible(False)
     ax[1].spines['bottom'].set_visible(False)
     ax[1].spines['top'].set_visible(False)
     ax[1].spines['right'].set_visible(False)
@@ -360,7 +372,7 @@ def stdp():
     ax[2].spines['right'].set_visible(False)
 
     # i trace
-    ax[3].plot(ki, label="ki exact, time-based", color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False)
+    ax[3].plot(ti_axis, ki, label="ki exact, time-based", color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False)
     ## y axis
     ax[3].set_yticks([])
     ax[3].yaxis.set_label_coords(*Y_AXIS_COORDS)
