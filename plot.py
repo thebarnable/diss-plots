@@ -113,6 +113,74 @@ def template():
     plt.close()
 
 
+def bnns_scaling():
+    # params
+    FONTSIZE = 25
+    X_MAJORTICKS_LABELSIZE = 25
+    Y_MAJORTICKS_LABELSIZE = 25
+    MARKERSIZE = 8
+    FIGSIZE = (10, 8)
+
+    # experiment data (from https://www.overleaf.com/project/5ef59a9907971a00016a551d (BNN paper project))
+    x = np.array([2, 4, 8, 16, 32, 64])
+
+    y_8b = np.array([0.0222, 0.0456, 0.1152, 0.2408, 0.5070, 1])
+    y_1b = np.array([0.0100, 0.0400, 0.1184, 0.2378, 0.4662, 1])
+    y_linear = np.array([0.03125, 0.0625, 0.125, 0.25, 0.5, 1])
+
+    # plot results
+    fig, ax = plt.subplots(1, 1, figsize=FIGSIZE) # , sharex=False, gridspec_kw={'height_ratios': [1, 2, 3, 2]}, figsize=(10,7))
+    #fig.subplots_adjust(hspace=HSPACE)
+    if type(ax) is not list and type(ax) is not np.ndarray:
+        ax = [ax]
+
+    ax[0].plot(x, y_8b, 'x-', color=BLUE, label="8b x 8b", linewidth=LINEWIDTH, clip_on=False, markersize=MARKERSIZE) # , drawstyle='steps-post'
+    ax[0].plot(x, y_1b, 'o-', color=RED, label="1b x 1b", linewidth=LINEWIDTH, clip_on=False, markersize=MARKERSIZE) # , drawstyle='steps-post'
+    ax[0].plot(x, y_linear, ':', color=BLACK, label="Linear", linewidth=LINEWIDTH, clip_on=False, markersize=MARKERSIZE) # , drawstyle='steps-post'
+
+    ## x axis
+    ax[0].set_xscale('log', base=2)
+    ax[0].set_xticks([4, 16, 64], ["4", "16", "64"])
+    ax[0].set_xlim(1.5, 80)
+    #ax[0].xaxis.set_label_coords(0.0, -0.11)
+    ax[0].set_xlabel("Vector Length (N)", fontsize=FONTSIZE, fontweight='bold')
+    #ax[0].xaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[0].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+    #ax[0].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH, right=True, top=True, direction='in')
+    ax[0].spines['bottom'].set_linewidth(BOTTOM_WIDTH)
+
+    ## y axis
+    ax[0].set_yticks([0.01, 0.1, 1])
+    ax[0].set_ylim(0.005, 2)
+    #ax[0].yaxis.set_label_coords(-0.11, 0.0)
+    ax[0].set_ylabel("Normalized Energy Cost", fontsize=FONTSIZE, fontweight='bold')
+    #ax[0].yaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[0].tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+    ax[0].tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH, right=True, top=True, direction='in')
+    ax[0].set_yscale('log')
+    ax[0].spines['left'].set_linewidth(LEFT_WIDTH)
+
+    ## other axes
+    ax[0].spines['top'].set_linewidth(BOTTOM_WIDTH)
+    ax[0].spines['right'].set_linewidth(BOTTOM_WIDTH)
+
+    ## grid
+    ax[0].grid(True, which='both', linestyle='-', linewidth=0.4)
+
+    ## legend
+    ax[0].legend(frameon=True, loc='lower right',bbox_to_anchor=(1.0, 0.0),fontsize=FONTSIZE)
+
+    Path(OUTPUT).mkdir(parents=True, exist_ok=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".png", format='png', dpi=PNG_DPI, transparent=True)
+    if PLOT:
+        plt.show()
+        plt.clf()
+    plt.clf()
+    plt.close()
+
+
 def sg():
     # override variables
     LINEWIDTH = 8.5
