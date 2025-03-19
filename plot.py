@@ -115,11 +115,12 @@ def template():
 
 def bnns_scaling():
     # params
-    FONTSIZE = 25
-    X_MAJORTICKS_LABELSIZE = 25
-    Y_MAJORTICKS_LABELSIZE = 25
+    FONTSIZE = 12
+    Y_MAJORTICKS_LABELSIZE = 12
+    X_MAJORTICKS_LABELSIZE = 12
     MARKERSIZE = 8
-    FIGSIZE = (10, 8)
+    FIGWIDTH = 5.6 # 6.3
+    FIGSIZE = (FIGWIDTH, FIGWIDTH * (9/16))
 
     # experiment data (from https://www.overleaf.com/project/5ef59a9907971a00016a551d (BNN paper project))
     x = np.array([2, 4, 8, 16, 32, 64])
@@ -143,7 +144,7 @@ def bnns_scaling():
     ax[0].set_xticks([4, 16, 64], ["4", "16", "64"])
     ax[0].set_xlim(1.5, 80)
     #ax[0].xaxis.set_label_coords(0.0, -0.11)
-    ax[0].set_xlabel("Vector Length (N)", fontsize=FONTSIZE, fontweight='bold')
+    ax[0].set_xlabel("Vector Length (N)", fontsize=FONTSIZE) # , fontweight='bold'
     #ax[0].xaxis.set_minor_locator(AutoMinorLocator(10))
     ax[0].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
     #ax[0].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH, right=True, top=True, direction='in')
@@ -153,7 +154,7 @@ def bnns_scaling():
     ax[0].set_yticks([0.01, 0.1, 1])
     ax[0].set_ylim(0.005, 2)
     #ax[0].yaxis.set_label_coords(-0.11, 0.0)
-    ax[0].set_ylabel("Normalized Energy Cost", fontsize=FONTSIZE, fontweight='bold')
+    ax[0].set_ylabel("Normalized Energy Cost", fontsize=FONTSIZE) # , fontweight='bold'
     #ax[0].yaxis.set_minor_locator(AutoMinorLocator(10))
     ax[0].tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
     ax[0].tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH, right=True, top=True, direction='in')
@@ -165,11 +166,139 @@ def bnns_scaling():
     ax[0].spines['right'].set_linewidth(BOTTOM_WIDTH)
 
     ## grid
-    ax[0].grid(True, which='both', linestyle='-', linewidth=0.4)
+    ax[0].grid(True, which='both', linestyle='-', linewidth=0.4, alpha=0.5)
 
     ## legend
     ax[0].legend(frameon=True, loc='lower right',bbox_to_anchor=(1.0, 0.0),fontsize=FONTSIZE)
 
+    plt.tight_layout()
+    Path(OUTPUT).mkdir(parents=True, exist_ok=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".png", format='png', dpi=PNG_DPI, transparent=True)
+    if PLOT:
+        plt.show()
+        plt.clf()
+    plt.clf()
+    plt.close()
+
+
+def bnns_results():
+    # params
+    FONTSIZE = 12
+    Y_MAJORTICKS_LABELSIZE = 12
+    X_MAJORTICKS_LABELSIZE = 12
+    MARKERSIZE = 8
+    FIGWIDTH = 6.3
+    FIGSIZE = (FIGWIDTH, FIGWIDTH * (9/16)) # (9/16)
+
+    # experiment data (from https://www.overleaf.com/project/5ef59a9907971a00016a551d (BNN paper project))
+    cifar_1 = np.array([[0.917, 89.98], [0.690, 88.15], [0.917, 90.09]])
+    cifar_2 = np.array([[2.633, 90.52], [10.281, 91.91]])
+    cifar_3 = np.array([[0.883, 89.09], [0.896, 89.44], [1.433, 90.19], [1.551, 90.52],
+                       [0.981, 89.44], [0.703, 89.38], [0.690, 88.15], [0.703, 90.09]])
+    cifar_4 = np.array([[0.690, 88.60]])
+    cifar_5 = np.array([[1.661, 90.85]])
+    cifar_6 = np.array([[1.366, 84.0]])
+    cifar_7 = np.array([[9.448, 90.1]])
+    cifar_8 = np.array([[0.917, 89.83]])
+    cifar_9 = np.array([[46.716, 92.97]])
+
+    mnist_1 = np.array([[0.064, 99.07], [0.019, 99.22], [0.064, 99.27]])
+    mnist_2 = np.array([[0.050, 99.28], [0.151, 99.31], [0.505, 99.32], [0.019, 99.26]])
+    mnist_3 = np.array([[0.026, 98.59], [0.021, 99.27], [0.027, 99.14], [0.031, 99.20], [0.020, 98.90], [0.021, 99.08], [0.019, 99.18], [0.021, 99.16]])
+    mnist_4 = np.array([[0.048, 98.6], [0.117, 99.04]])
+    mnist_5 = np.array([[0.073, 99.38]])
+    mnist_6 = np.array([[0.234, 98.75]])
+    mnist_7 = np.array([[0.133, 98.82]])
+    mnist_8 = np.array([[0.597, 99.4]])
+
+    # plot results
+    fig, ax = plt.subplots(1, 2, figsize=FIGSIZE, sharex=False, gridspec_kw={'width_ratios': [1, 1]}) #, figsize=(10,7))
+    fig.subplots_adjust(top=0.8, bottom=0.15)
+    if type(ax) is not list and type(ax) is not np.ndarray:
+        ax = [ax]
+    
+    # mnist
+    ax[0].scatter(mnist_1[:, 0], mnist_1[:, 1], color=BLUE, marker='x', s=50, label="First/Last (ours)")
+    ax[0].scatter(mnist_2[:, 0], mnist_2[:, 1], color=BLUE, marker='*', s=50, label="Arch. (ours)")
+    ax[0].scatter(mnist_3[:, 0], mnist_3[:, 1], color=BLUE, marker='^', s=50, label="Tern. (ours)")
+    ax[0].scatter(mnist_4[:, 0], mnist_4[:, 1], color=BLACK, marker='s', s=50, label="BNN")
+    ax[0].scatter(mnist_5[:, 0], mnist_5[:, 1], color=BLACK, marker='+', s=50, label="TBN")
+    ax[0].scatter(mnist_6[:, 0], mnist_6[:, 1], color=BLACK, marker='|', s=50, label="HORQ")
+    ax[0].scatter(mnist_7[:, 0], mnist_7[:, 1], color=BLACK, marker='*', s=50, label="BC")
+    ax[0].scatter(mnist_8[:, 0], mnist_8[:, 1], color=BLACK, marker='x', s=50, label="XNOR-NET")
+
+    ax[0].set_xscale('log', base=10)
+    ax[0].set_xticks([0.01, 0.1, 1.0], ["0.01", "0.1", "1.0"])
+    ax[0].set_xlim(0.01, 1)
+    #ax[0].xaxis.set_label_coords(0.0, -0.11)
+    ax[0].set_xlabel("Energy Cost [μJ]", fontsize=FONTSIZE) # , fontweight='bold'
+    #ax[0].xaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[0].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+    ax[0].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH, right=True, top=True, direction='in')
+    ax[0].spines['bottom'].set_linewidth(BOTTOM_WIDTH)
+
+    ## y axis
+    ax[0].set_yticks([98.7, 98.9, 99.1, 99.3, 99.5])
+    ax[0].set_ylim(98.7, 99.5)
+    #ax[0].yaxis.set_label_coords(-0.11, 0.0)
+    ax[0].set_ylabel("Accuracy [%]", fontsize=FONTSIZE) # , fontweight='bold'
+    #ax[0].yaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[0].tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+    #ax[0].tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH, right=True, top=True, direction='in')
+    ax[0].spines['left'].set_linewidth(LEFT_WIDTH)
+
+    ## other axes
+    ax[0].spines['top'].set_linewidth(BOTTOM_WIDTH)
+    ax[0].spines['right'].set_linewidth(BOTTOM_WIDTH)
+
+    ## grid
+    ax[0].grid(True, which='both', linestyle='-', linewidth=0.4, alpha=0.5)
+
+    # cifar
+    ax[1].scatter(cifar_1[:, 0], cifar_1[:, 1], color=BLUE, marker='x', s=50, label="First/Last (ours)")
+    ax[1].scatter(cifar_2[:, 0], cifar_2[:, 1], color=BLUE, marker='*', s=50, label="Arch. (ours)")
+    ax[1].scatter(cifar_3[:, 0], cifar_3[:, 1], color=BLUE, marker='^', s=50, label="Tern. (ours)")
+    ax[1].scatter(cifar_4[:, 0], cifar_4[:, 1], color=BLACK, marker='s', s=50, label="BNN")
+    ax[1].scatter(cifar_5[:, 0], cifar_5[:, 1], color=BLACK, marker='+', s=50, label="TBN")
+    ax[1].scatter(cifar_6[:, 0], cifar_6[:, 1], color=BLACK, marker='|', s=50, label="HORQ")
+    ax[1].scatter(cifar_7[:, 0], cifar_7[:, 1], color=BLACK, marker='*', s=50, label="BC")
+    ax[1].scatter(cifar_8[:, 0], cifar_8[:, 1], color=BLACK, marker='x', s=50, label="XNOR-NET")
+    ax[1].scatter(cifar_9[:, 0], cifar_9[:, 1], color=BLACK, marker='o', s=50)
+
+    ## x axis
+    ax[1].set_xscale('log', base=10)
+    ax[1].set_xticks([1, 10], ["1", "10"])
+    ax[1].set_xlim(0.5, 70)
+    # ax[1].xaxis.set_label_coords(0.0, -0.11)
+    ax[1].set_xlabel("Energy Cost[μJ]", fontsize=FONTSIZE) # , fontweight='bold'
+    # ax[1].xaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[1].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+    ax[1].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH, right=True, top=True, direction='in')
+    ax[1].spines['bottom'].set_linewidth(BOTTOM_WIDTH)
+
+    ## y axis
+    ax[1].set_yticks([87, 89, 91, 93, 95])
+    ax[1].set_ylim(87, 95)
+    #ax[1].yaxis.set_label_coords(-0.11, 0.0)
+    #ax[1].set_ylabel("Normalized Energy Cost", fontsize=FONTSIZE) # , fontweight='bold'
+    #ax[1].yaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[1].tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+    #ax[1].tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH, right=True, top=True, direction='in')
+    ax[1].spines['left'].set_linewidth(LEFT_WIDTH)
+
+    ## other axes
+    ax[1].spines['top'].set_linewidth(BOTTOM_WIDTH)
+    ax[1].spines['right'].set_linewidth(BOTTOM_WIDTH)
+
+    ## grid
+    ax[1].grid(True, which='both', linestyle='-', linewidth=0.4, alpha=0.5)
+
+    ## legend
+    plt.legend(ncol=4, frameon=True, loc='upper center', bbox_to_anchor=(-0.25, 1.32), fontsize=FONTSIZE, borderpad=0.2, columnspacing=0.1)
+
+    #plt.tight_layout()
     Path(OUTPUT).mkdir(parents=True, exist_ok=True)
     plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
     plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
