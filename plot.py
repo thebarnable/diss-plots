@@ -342,6 +342,166 @@ def bnns_results():
     plt.close()
 
 
+def bnns_sota():
+    # params
+    FONTSIZE = 12
+    Y_MAJORTICKS_LABELSIZE = 12
+    X_MAJORTICKS_LABELSIZE = 12
+    MARKERSIZE = 8
+    FIGWIDTH = 6.3
+    AXISWIDTH = 1.0
+    X_MAJORTICKS_LENGTH = 10
+    Y_MAJORTICKS_LENGTH = 10
+    X_MAJORTICKS_WIDTH = 1.0
+    Y_MAJORTICKS_WIDTH = 1.0
+    FIGSIZE = (FIGWIDTH, FIGWIDTH / 1.6) # (9/16)
+    ARROWPROPS = dict(
+        facecolor=GREY,     # Arrow color
+        edgecolor=GREY,     # Border color of the arrow
+        arrowstyle='-|>',       # Style of the arrow (e.g., '->', '-|>', etc.)
+        lw=1,                # Line width
+    )
+
+    # experiment data (from https://www.overleaf.com/project/5ef59a9907971a00016a551d (BNN paper project))
+    data_1 = np.array([[2.594, 41.8], [40.279, 47.1]])  # BNN: (2.594, 41.8)  (40.279, 47.1)
+    data_1b = np.array([[10.12, 41.8], [131.91, 47.1]])  # -> data_1[0], data_1[1]
+    data_2 = np.array([[10.373, 44.2], [15.877, 51.2]])  # XNOR-Net:  (10.373, 44.2) (15.877, 51.2)
+    data_3 = np.array([[4.25, 42.7], [63.74, 65.0], [6.547, 52.4], [121.15,68.4]])  # ABC-Net: (4.25, 42.7) (63.74, 65.0) (6.547, 52.4) (121.15,68.4)
+    data_3b = np.array([[13.2, 42.7], [114.61, 65.0], [15.83, 52.4], [180.28,68.4]])  # -> data_3[*]
+    data_4 = np.array([[10.003, 39.3], [10.771, 46.6]])  # Tang: (10.003, 39.3) (10.771, 46.6)
+    data_5 = np.array([[18.78, 56.4], [21.09, 62.2]])  # Bireal-Net: (18.78, 56.4) (21.09, 62.2)
+    data_6 = np.array([[10.373, 46.1], [15.877, 53.0]])   # BNN+: (10.373, 46.1) (15.877, 53.0)
+    data_7 = np.array([[21.46, 67.5], [32.941, 71.8]])   # GroupNet: (21.46, 67.5) (32.941, 71.8)
+    data_8 = np.array([[15.877, 58.1]])  # ResNetE: (15.877, 58.1)
+    data_9 = np.array([[11.271, 49.7], [18.32, 55.6], [23.308, 58.2]]) # TBN: (11.271, 49.7) (18.32, 55.6) (23.308, 58.2)
+    data_9b = np.array([[16.18, 55.6], [18.80, 58.2]]) # -> data_9[1], data_9[2]
+    data_10 = np.array([[31.12, 50.2], [47.63, 53.6]]) # BENN: (31.12, 50.2) (47.63, 53.6)
+    data_11 = np.array([[11.4, 66.6]]) # TTQ: (11.4, 66.6)
+    data_12 = np.array([[12.968, 35.4], [20.679, 56.8]]) # BC: (12.968, 35.4) (20.679, 56.8)
+    data_12b = np.array([[65.70, 35.4], [65.70, 56.8]]) # -> data_12[*]
+    data_13 = np.array([[65.697, 56.6], [166.30, 69.3], [334.52,73.3], [52.25, 70.6], [27.26, 72], [35.44, 77.3], [38.17, 67.4]])  # FP: (65.697, 56.6) (166.30, 69.3) (334.52,73.3) (52.25, 70.6) (27.26, 72) (35.44, 77.3) (38.17, 67.4)
+
+    # plot results
+    fig, ax = plt.subplots(1, 1, figsize=FIGSIZE) #, figsize=(10,7))
+    fig.subplots_adjust(top=0.8, bottom=0.15)
+    if type(ax) is not list and type(ax) is not np.ndarray:
+        ax = [ax]
+
+    # pareto curve and background refs
+    ax[0].hlines(y=[data_1[0][1]], xmin=1, xmax=data_3[0][0], colors=GREY, ls='--', lw=1, clip_on=False)  # data_1[0] -> data_3[0]
+    ax[0].vlines(x=[data_3[0][0]], ymin=data_1[0][1], ymax=data_3[0][1], colors=GREY, ls='--', lw=1, clip_on=False)
+    ax[0].hlines(y=[data_3[0][1]], xmin=data_3[0][0], xmax=data_3[2][0], colors=GREY, ls='--', lw=1, clip_on=False)  # data_3[0] -> data_3[2]
+    ax[0].vlines(x=[data_3[2][0]], ymin=data_3[0][1], ymax=data_3[2][1], colors=GREY, ls='--', lw=1, clip_on=False)
+    ax[0].hlines(y=[data_3[2][1]], xmin=data_3[2][0], xmax=data_11[0][0], colors=GREY, ls='--', lw=1, clip_on=False)  # data_3[2] -> data_11[0]
+    ax[0].vlines(x=[data_11[0][0]], ymin=data_3[2][1], ymax=data_11[0][1], colors=GREY, ls='--', lw=1, clip_on=False)
+    ax[0].hlines(y=[data_11[0][1]], xmin=data_11[0][0], xmax=data_7[0][0], colors=GREY, ls='--', lw=1, clip_on=False)  # data_11[0] -> data_7[0]
+    ax[0].vlines(x=[data_7[0][0]], ymin=data_11[0][1], ymax=data_7[0][1], colors=GREY, ls='--', lw=1, clip_on=False)
+    ax[0].hlines(y=[data_7[0][1]], xmin=data_7[0][0], xmax=data_13[4][0], colors=GREY, ls='--', lw=1, clip_on=False)  # data_7[0] -> data_13[4]
+    ax[0].vlines(x=[data_13[4][0]], ymin=data_7[0][1], ymax=data_13[4][1], colors=GREY, ls='--', lw=1, clip_on=False)
+    ax[0].hlines(y=[data_13[4][1]], xmin=data_13[4][0], xmax=data_13[5][0], colors=GREY, ls='--', lw=1, clip_on=False)  # data_13[4] -> data_13[5]
+    ax[0].vlines(x=[data_13[5][0]], ymin=data_13[4][1], ymax=data_13[5][1], colors=GREY, ls='--', lw=1, clip_on=False)
+    ax[0].hlines(y=[data_13[5][1]], xmin=data_13[5][0], xmax=500, colors=GREY, ls='--', lw=1, clip_on=False)  # data_13[5] -> end
+    
+    ax[0].annotate('', xytext=(data_1b[0][0]*0.9, data_1b[0][1]), xy=(data_1[0][0]*1.1, data_1[0][1]), arrowprops=ARROWPROPS, fontsize=FONTSIZE)
+    ax[0].annotate('', xytext=(data_1b[1][0]*0.9, data_1b[1][1]), xy=(data_1[1][0]*1.1, data_1[1][1]), arrowprops=ARROWPROPS, fontsize=FONTSIZE)
+    ax[0].annotate('', xytext=(data_3b[0][0]*0.9, data_3b[0][1]), xy=(data_3[0][0]*1.1, data_3[0][1]), arrowprops=ARROWPROPS, fontsize=FONTSIZE)
+    ax[0].annotate('', xytext=(data_3b[1][0]*0.9, data_3b[1][1]), xy=(data_3[1][0]*1.1, data_3[1][1]), arrowprops=ARROWPROPS, fontsize=FONTSIZE)
+    ax[0].annotate('', xytext=(data_3b[2][0]*0.9, data_3b[2][1]), xy=(data_3[2][0]*1.1, data_3[2][1]), arrowprops=ARROWPROPS, fontsize=FONTSIZE)
+    ax[0].annotate('', xytext=(data_3b[3][0]*0.9, data_3b[3][1]), xy=(data_3[3][0]*1.1, data_3[3][1]), arrowprops=ARROWPROPS, fontsize=FONTSIZE)
+    ax[0].annotate('', xytext=(data_9b[0][0]*0.9, data_9b[0][1]), xy=(data_9[1][0]*1.1, data_9[1][1]), arrowprops=ARROWPROPS, fontsize=FONTSIZE)
+    ax[0].annotate('', xytext=(data_9b[1][0]*0.9, data_9b[1][1]), xy=(data_9[2][0]*1.1, data_9[2][1]), arrowprops=ARROWPROPS, fontsize=FONTSIZE)
+    ax[0].annotate('', xytext=(data_12b[0][0]*0.9, data_12b[0][1]), xy=(data_12[0][0]*1.1, data_12[0][1]), arrowprops=ARROWPROPS, fontsize=FONTSIZE)
+    ax[0].annotate('', xytext=(data_12b[1][0]*0.9, data_12b[1][1]), xy=(data_12[1][0]*1.1, data_12[1][1]), arrowprops=ARROWPROPS, fontsize=FONTSIZE)
+    
+    for i,fp_data in enumerate(data_13):
+        x_offset = 0
+        y_offset = 0.8
+        if i==5:
+            x_offset = -5
+            y_offset = 0
+
+        ax[0].text(
+            fp_data[0]+x_offset,         # x
+            fp_data[1]+y_offset,    # y
+            f"({i+1})",         # Text
+            ha='center',        # Horizontal alignment
+            va='bottom',        # Vertical alignment
+            fontsize=10,  # Font size
+            color=GREY       # Text color
+        )
+
+    # mnist
+    ax[0].scatter(data_1[:, 0], data_1[:, 1], color=BLUE, marker='x', s=50, label="BNN")
+    ax[0].scatter(data_2[:, 0], data_2[:, 1], color=BLUE, marker='*', s=50, label="XNOR")
+    ax[0].scatter(data_3[:, 0], data_3[:, 1], color=BLUE, marker='^', s=50, label="ABC-Net")
+    ax[0].scatter(data_4[:, 0], data_4[:, 1], color=BLUE, marker='s', s=50, label="Tang")
+    ax[0].scatter(data_5[:, 0], data_5[:, 1], color=BLUE, marker='+', s=50, label="Bireal")
+    ax[0].scatter(data_6[:, 0], data_6[:, 1], color=BLUE, marker='|', s=50, label="BNN+")
+    ax[0].scatter(data_7[:, 0], data_7[:, 1], color=BLUE, marker='h', s=50, label="GroupNet")
+    ax[0].scatter(data_8[:, 0], data_8[:, 1], color=BLUE, marker='.', s=50, label="ResNetE")
+    ax[0].scatter(data_9[:, 0], data_9[:, 1], color=BLUE, marker='p', s=50, label="TBN")
+    ax[0].scatter(data_10[:, 0], data_10[:, 1], color=BLUE, marker='d', s=50, label="BENN")
+    ax[0].scatter(data_11[:, 0], data_11[:, 1], color=BLUE, marker='_', s=50, label="TTQ")
+    ax[0].scatter(data_12[:, 0], data_12[:, 1], color=BLUE, marker='D', s=50, label="BC")
+    ax[0].scatter(data_13[:, 0], data_13[:, 1], color=BLUE, marker='o', s=50)
+
+    ax[0].scatter(data_1b[:, 0], data_1b[:, 1], color=GREY, marker='o', s=15)
+    ax[0].scatter(data_3b[:, 0], data_3b[:, 1], color=GREY, marker='o', s=15)
+    ax[0].scatter(data_9b[:, 0], data_9b[:, 1], color=GREY, marker='o', s=15)
+    ax[0].scatter(data_12b[:, 0], data_12b[:, 1], color=GREY, marker='o', s=15)
+
+
+    ax[0].set_xscale('log', base=10)
+    ax[0].set_xticks([10, 100], ["10", "100"])
+    ax[0].set_xlim(1, 500)
+    #ax[0].xaxis.set_label_coords(0.0, -0.11)
+    ax[0].set_xlabel("Energy Cost [μJ]", fontsize=FONTSIZE) # , fontweight='bold'
+    #ax[0].xaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[0].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+    ax[0].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH, right=True, top=True, direction='in')
+    ax[0].spines['bottom'].set_linewidth(AXISWIDTH)
+
+    ## y axis
+    ax[0].set_yticks([40, 50, 60, 70, 80])
+    ax[0].set_ylim(30, 80)
+    #ax[0].yaxis.set_label_coords(-0.11, 0.0)
+    ax[0].set_ylabel("Top-1 Accuracy [%]", fontsize=FONTSIZE) # , fontweight='bold'
+    #ax[0].yaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[0].tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+    #ax[0].tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH, right=True, top=True, direction='in')
+    ax[0].spines['left'].set_linewidth(AXISWIDTH)
+
+    ## other axes
+    ax[0].spines['top'].set_linewidth(AXISWIDTH)
+    ax[0].spines['right'].set_linewidth(AXISWIDTH)
+
+    ## grid
+    ax[0].grid(True, which='both', linestyle='-', linewidth=0.4, alpha=0.5)
+    # ax[0].text(
+    #     (mnist_5[0][0]-0.01 + 0.025) / 2,   # X coordinate for the text (middle of the arrow)
+    #     mnist_5[0][1]+0.01,    # Y coordinate for the text (middle of the arrow)
+    #     'x3.5',                   # Text
+    #     ha='center',              # Horizontal alignment
+    #     va='bottom',              # Vertical alignment
+    #     fontsize=FONTSIZE,        # Font size
+    #     color='black'             # Text color
+    # )
+
+    ## legend
+    plt.legend(ncol=4, frameon=True, loc='upper center', bbox_to_anchor=(0.5, 1.327), fontsize=FONTSIZE, borderpad=0.1, columnspacing=0.01) #, borderpad=0.1, columnspacing=0.01, labelspacing=0.01)
+
+    #plt.tight_layout()
+    Path(OUTPUT).mkdir(parents=True, exist_ok=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".png", format='png', dpi=PNG_DPI, transparent=True)
+    if PLOT:
+        plt.show()
+        plt.clf()
+    plt.clf()
+    plt.close()
+
+
 def sg():
     # override variables
     LINEWIDTH = 8.5
