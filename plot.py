@@ -119,7 +119,12 @@ def bnns_scaling():
     Y_MAJORTICKS_LABELSIZE = 12
     X_MAJORTICKS_LABELSIZE = 12
     MARKERSIZE = 8
+    AXISWIDTH = 1.0
     FIGWIDTH = 5.6 # 6.3
+    X_MAJORTICKS_LENGTH = 10
+    Y_MAJORTICKS_LENGTH = 10
+    X_MAJORTICKS_WIDTH = 1.0
+    Y_MAJORTICKS_WIDTH = 1.0
     FIGSIZE = (FIGWIDTH, FIGWIDTH * (9/16))
 
     # experiment data (from https://www.overleaf.com/project/5ef59a9907971a00016a551d (BNN paper project))
@@ -148,7 +153,7 @@ def bnns_scaling():
     #ax[0].xaxis.set_minor_locator(AutoMinorLocator(10))
     ax[0].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
     #ax[0].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH, right=True, top=True, direction='in')
-    ax[0].spines['bottom'].set_linewidth(BOTTOM_WIDTH)
+    ax[0].spines['bottom'].set_linewidth(AXISWIDTH)
 
     ## y axis
     ax[0].set_yticks([0.01, 0.1, 1])
@@ -159,11 +164,11 @@ def bnns_scaling():
     ax[0].tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
     ax[0].tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH, right=True, top=True, direction='in')
     ax[0].set_yscale('log')
-    ax[0].spines['left'].set_linewidth(LEFT_WIDTH)
+    ax[0].spines['left'].set_linewidth(AXISWIDTH)
 
     ## other axes
-    ax[0].spines['top'].set_linewidth(BOTTOM_WIDTH)
-    ax[0].spines['right'].set_linewidth(BOTTOM_WIDTH)
+    ax[0].spines['top'].set_linewidth(AXISWIDTH)
+    ax[0].spines['right'].set_linewidth(AXISWIDTH)
 
     ## grid
     ax[0].grid(True, which='both', linestyle='-', linewidth=0.4, alpha=0.5)
@@ -190,6 +195,11 @@ def bnns_results():
     X_MAJORTICKS_LABELSIZE = 12
     MARKERSIZE = 8
     FIGWIDTH = 6.3
+    AXISWIDTH = 1.0
+    X_MAJORTICKS_LENGTH = 10
+    Y_MAJORTICKS_LENGTH = 10
+    X_MAJORTICKS_WIDTH = 1.0
+    Y_MAJORTICKS_WIDTH = 1.0
     FIGSIZE = (FIGWIDTH, FIGWIDTH * (9/16)) # (9/16)
 
     # experiment data (from https://www.overleaf.com/project/5ef59a9907971a00016a551d (BNN paper project))
@@ -225,9 +235,9 @@ def bnns_results():
     ax[0].scatter(mnist_3[:, 0], mnist_3[:, 1], color=BLUE, marker='^', s=50, label="Tern. (ours)")
     ax[0].scatter(mnist_4[:, 0], mnist_4[:, 1], color=BLACK, marker='s', s=50, label="BNN")
     ax[0].scatter(mnist_5[:, 0], mnist_5[:, 1], color=BLACK, marker='+', s=50, label="TBN")
-    ax[0].scatter(mnist_6[:, 0], mnist_6[:, 1], color=BLACK, marker='|', s=50, label="HORQ")
-    ax[0].scatter(mnist_7[:, 0], mnist_7[:, 1], color=BLACK, marker='*', s=50, label="BC")
-    ax[0].scatter(mnist_8[:, 0], mnist_8[:, 1], color=BLACK, marker='x', s=50, label="XNOR-NET")
+    #ax[0].scatter(mnist_6[:, 0], mnist_6[:, 1], color=BLACK, marker='|', s=50, label="HORQ")
+    ax[0].scatter(mnist_7[:, 0], mnist_7[:, 1], color=BLACK, marker='h', s=50, label="BC")
+    ax[0].scatter(mnist_8[:, 0], mnist_8[:, 1], color=BLACK, marker='o', s=50, label="FP")
 
     ax[0].set_xscale('log', base=10)
     ax[0].set_xticks([0.01, 0.1, 1.0], ["0.01", "0.1", "1.0"])
@@ -237,7 +247,7 @@ def bnns_results():
     #ax[0].xaxis.set_minor_locator(AutoMinorLocator(10))
     ax[0].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
     ax[0].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH, right=True, top=True, direction='in')
-    ax[0].spines['bottom'].set_linewidth(BOTTOM_WIDTH)
+    ax[0].spines['bottom'].set_linewidth(AXISWIDTH)
 
     ## y axis
     ax[0].set_yticks([98.7, 98.9, 99.1, 99.3, 99.5])
@@ -247,14 +257,36 @@ def bnns_results():
     #ax[0].yaxis.set_minor_locator(AutoMinorLocator(10))
     ax[0].tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
     #ax[0].tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH, right=True, top=True, direction='in')
-    ax[0].spines['left'].set_linewidth(LEFT_WIDTH)
+    ax[0].spines['left'].set_linewidth(AXISWIDTH)
 
     ## other axes
-    ax[0].spines['top'].set_linewidth(BOTTOM_WIDTH)
-    ax[0].spines['right'].set_linewidth(BOTTOM_WIDTH)
+    ax[0].spines['top'].set_linewidth(AXISWIDTH)
+    ax[0].spines['right'].set_linewidth(AXISWIDTH)
 
     ## grid
     ax[0].grid(True, which='both', linestyle='-', linewidth=0.4, alpha=0.5)
+    ax[0].vlines(x=[0.021], ymin=98.7, ymax=99.5, colors=GREY, ls='--', lw=2, clip_on=False)
+    ax[0].annotate(
+        '',                       # Empty string for no text
+        xy=(0.025, mnist_5[0][1]),        # Coordinates of the end point
+        xytext=(mnist_5[0][0]-0.01, mnist_5[0][1]), # Coordinates of the start point
+        arrowprops=dict(
+            facecolor=GREY,     # Arrow color
+            edgecolor=GREY,     # Border color of the arrow
+            arrowstyle='->',       # Style of the arrow (e.g., '->', '-|>', etc.)
+            lw=1.5,                # Line width
+        ),
+        fontsize=FONTSIZE
+    )
+    ax[0].text(
+        (mnist_5[0][0]-0.01 + 0.025) / 2,   # X coordinate for the text (middle of the arrow)
+        mnist_5[0][1]+0.01,    # Y coordinate for the text (middle of the arrow)
+        'x3.5',                   # Text
+        ha='center',              # Horizontal alignment
+        va='bottom',              # Vertical alignment
+        fontsize=FONTSIZE,        # Font size
+        color='black'             # Text color
+    )
 
     # cifar
     ax[1].scatter(cifar_1[:, 0], cifar_1[:, 1], color=BLUE, marker='x', s=50, label="First/Last (ours)")
@@ -262,10 +294,10 @@ def bnns_results():
     ax[1].scatter(cifar_3[:, 0], cifar_3[:, 1], color=BLUE, marker='^', s=50, label="Tern. (ours)")
     ax[1].scatter(cifar_4[:, 0], cifar_4[:, 1], color=BLACK, marker='s', s=50, label="BNN")
     ax[1].scatter(cifar_5[:, 0], cifar_5[:, 1], color=BLACK, marker='+', s=50, label="TBN")
-    ax[1].scatter(cifar_6[:, 0], cifar_6[:, 1], color=BLACK, marker='|', s=50, label="HORQ")
-    ax[1].scatter(cifar_7[:, 0], cifar_7[:, 1], color=BLACK, marker='*', s=50, label="BC")
-    ax[1].scatter(cifar_8[:, 0], cifar_8[:, 1], color=BLACK, marker='x', s=50, label="XNOR-NET")
-    ax[1].scatter(cifar_9[:, 0], cifar_9[:, 1], color=BLACK, marker='o', s=50)
+    #ax[1].scatter(cifar_6[:, 0], cifar_6[:, 1], color=BLACK, marker='|', s=50, label="HORQ")
+    ax[1].scatter(cifar_7[:, 0], cifar_7[:, 1], color=BLACK, marker='h', s=50, label="BC")
+    ax[1].scatter(cifar_8[:, 0], cifar_8[:, 1], color=BLACK, marker='v', s=50, label="XNOR-NET")
+    ax[1].scatter(cifar_9[:, 0], cifar_9[:, 1], color=BLACK, marker='o', s=50, label="FP")
 
     ## x axis
     ax[1].set_xscale('log', base=10)
@@ -276,7 +308,7 @@ def bnns_results():
     # ax[1].xaxis.set_minor_locator(AutoMinorLocator(10))
     ax[1].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
     ax[1].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH, right=True, top=True, direction='in')
-    ax[1].spines['bottom'].set_linewidth(BOTTOM_WIDTH)
+    ax[1].spines['bottom'].set_linewidth(AXISWIDTH)
 
     ## y axis
     ax[1].set_yticks([87, 89, 91, 93, 95])
@@ -286,11 +318,11 @@ def bnns_results():
     #ax[1].yaxis.set_minor_locator(AutoMinorLocator(10))
     ax[1].tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
     #ax[1].tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH, right=True, top=True, direction='in')
-    ax[1].spines['left'].set_linewidth(LEFT_WIDTH)
+    ax[1].spines['left'].set_linewidth(AXISWIDTH)
 
     ## other axes
-    ax[1].spines['top'].set_linewidth(BOTTOM_WIDTH)
-    ax[1].spines['right'].set_linewidth(BOTTOM_WIDTH)
+    ax[1].spines['top'].set_linewidth(AXISWIDTH)
+    ax[1].spines['right'].set_linewidth(AXISWIDTH)
 
     ## grid
     ax[1].grid(True, which='both', linestyle='-', linewidth=0.4, alpha=0.5)
