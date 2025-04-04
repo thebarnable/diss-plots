@@ -102,6 +102,7 @@ def template():
     ax[0].spines['top'].set_visible(False)
     ax[0].spines['right'].set_visible(False)
 
+    plt.tight_layout()
     Path(OUTPUT).mkdir(parents=True, exist_ok=True)
     plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
     plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
@@ -233,11 +234,11 @@ def bnns_results():
     ax[0].scatter(mnist_1[:, 0], mnist_1[:, 1], color=BLUE, marker='x', s=50, label="First/Last (ours)")
     ax[0].scatter(mnist_2[:, 0], mnist_2[:, 1], color=BLUE, marker='*', s=50, label="Arch. (ours)")
     ax[0].scatter(mnist_3[:, 0], mnist_3[:, 1], color=BLUE, marker='^', s=50, label="Tern. (ours)")
-    ax[0].scatter(mnist_4[:, 0], mnist_4[:, 1], color=BLACK, marker='s', s=50, label="BNN")
-    ax[0].scatter(mnist_5[:, 0], mnist_5[:, 1], color=BLACK, marker='+', s=50, label="TBN")
-    #ax[0].scatter(mnist_6[:, 0], mnist_6[:, 1], color=BLACK, marker='|', s=50, label="HORQ")
-    ax[0].scatter(mnist_7[:, 0], mnist_7[:, 1], color=BLACK, marker='h', s=50, label="BC")
-    ax[0].scatter(mnist_8[:, 0], mnist_8[:, 1], color=BLACK, marker='o', s=50, label="FP")
+    ax[0].scatter(mnist_4[:, 0], mnist_4[:, 1], color=GREY, marker='s', s=50, label="BNN")
+    ax[0].scatter(mnist_5[:, 0], mnist_5[:, 1], color=GREY, marker='+', s=50, label="TBN")
+    #ax[0].scatter(mnist_6[:, 0], mnist_6[:, 1], color=GREY, marker='|', s=50, label="HORQ")
+    ax[0].scatter(mnist_7[:, 0], mnist_7[:, 1], color=GREY, marker='h', s=50, label="BC")
+    ax[0].scatter(mnist_8[:, 0], mnist_8[:, 1], color=GREY, marker='o', s=50, label="Full-Prec.", facecolors='none')
 
     ax[0].set_xscale('log', base=10)
     ax[0].set_xticks([0.01, 0.1, 1.0], ["0.01", "0.1", "1.0"])
@@ -292,19 +293,19 @@ def bnns_results():
     ax[1].scatter(cifar_1[:, 0], cifar_1[:, 1], color=BLUE, marker='x', s=50, label="First/Last (ours)")
     ax[1].scatter(cifar_2[:, 0], cifar_2[:, 1], color=BLUE, marker='*', s=50, label="Arch. (ours)")
     ax[1].scatter(cifar_3[:, 0], cifar_3[:, 1], color=BLUE, marker='^', s=50, label="Tern. (ours)")
-    ax[1].scatter(cifar_4[:, 0], cifar_4[:, 1], color=BLACK, marker='s', s=50, label="BNN")
-    ax[1].scatter(cifar_5[:, 0], cifar_5[:, 1], color=BLACK, marker='+', s=50, label="TBN")
+    ax[1].scatter(cifar_4[:, 0], cifar_4[:, 1], color=GREY, marker='s', s=50, label="BNN")
+    ax[1].scatter(cifar_5[:, 0], cifar_5[:, 1], color=GREY, marker='+', s=50, label="TBN")
     #ax[1].scatter(cifar_6[:, 0], cifar_6[:, 1], color=BLACK, marker='|', s=50, label="HORQ")
-    ax[1].scatter(cifar_7[:, 0], cifar_7[:, 1], color=BLACK, marker='h', s=50, label="BC")
-    ax[1].scatter(cifar_8[:, 0], cifar_8[:, 1], color=BLACK, marker='v', s=50, label="XNOR-NET")
-    ax[1].scatter(cifar_9[:, 0], cifar_9[:, 1], color=BLACK, marker='o', s=50, label="FP")
+    ax[1].scatter(cifar_7[:, 0], cifar_7[:, 1], color=GREY, marker='h', s=50, label="BC")
+    ax[1].scatter(cifar_8[:, 0], cifar_8[:, 1], color=GREY, marker='v', s=50, label="XNOR-NET")
+    ax[1].scatter(cifar_9[:, 0], cifar_9[:, 1], color=GREY, marker='o', s=50, label="Full-Prec.", facecolors='none')
 
     ## x axis
     ax[1].set_xscale('log', base=10)
     ax[1].set_xticks([1, 10], ["1", "10"])
     ax[1].set_xlim(0.5, 70)
     # ax[1].xaxis.set_label_coords(0.0, -0.11)
-    ax[1].set_xlabel("Energy Cost[μJ]", fontsize=FONTSIZE) # , fontweight='bold'
+    ax[1].set_xlabel("Energy Cost [μJ]", fontsize=FONTSIZE) # , fontweight='bold'
     # ax[1].xaxis.set_minor_locator(AutoMinorLocator(10))
     ax[1].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
     ax[1].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH, right=True, top=True, direction='in')
@@ -408,8 +409,8 @@ def bnns_sota():
     ax[0].annotate('', xytext=(data_3b[1][0]*0.9, data_3b[1][1]), xy=(data_3[1][0]*1.1, data_3[1][1]), arrowprops=ARROWPROPS, fontsize=FONTSIZE)
     ax[0].annotate('', xytext=(data_3b[2][0]*0.9, data_3b[2][1]), xy=(data_3[2][0]*1.1, data_3[2][1]), arrowprops=ARROWPROPS, fontsize=FONTSIZE)
     ax[0].annotate('', xytext=(data_3b[3][0]*0.9, data_3b[3][1]), xy=(data_3[3][0]*1.1, data_3[3][1]), arrowprops=ARROWPROPS, fontsize=FONTSIZE)
-    ax[0].annotate('', xytext=(data_9b[0][0]*0.9, data_9b[0][1]), xy=(data_9[1][0]*1.1, data_9[1][1]), arrowprops=ARROWPROPS, fontsize=FONTSIZE)
-    ax[0].annotate('', xytext=(data_9b[1][0]*0.9, data_9b[1][1]), xy=(data_9[2][0]*1.1, data_9[2][1]), arrowprops=ARROWPROPS, fontsize=FONTSIZE)
+    #ax[0].annotate('', xytext=(data_9b[0][0]*0.9, data_9b[0][1]), xy=(data_9[1][0]*1.1, data_9[1][1]), arrowprops=ARROWPROPS, fontsize=FONTSIZE)
+    #ax[0].annotate('', xytext=(data_9b[1][0]*0.9, data_9b[1][1]), xy=(data_9[2][0]*1.1, data_9[2][1]), arrowprops=ARROWPROPS, fontsize=FONTSIZE)
     ax[0].annotate('', xytext=(data_12b[0][0]*0.9, data_12b[0][1]), xy=(data_12[0][0]*1.1, data_12[0][1]), arrowprops=ARROWPROPS, fontsize=FONTSIZE)
     ax[0].annotate('', xytext=(data_12b[1][0]*0.9, data_12b[1][1]), xy=(data_12[1][0]*1.1, data_12[1][1]), arrowprops=ARROWPROPS, fontsize=FONTSIZE)
     
@@ -443,11 +444,11 @@ def bnns_sota():
     ax[0].scatter(data_10[:, 0], data_10[:, 1], color=BLUE, marker='d', s=50, label="BENN")
     ax[0].scatter(data_11[:, 0], data_11[:, 1], color=BLUE, marker='_', s=50, label="TTQ")
     ax[0].scatter(data_12[:, 0], data_12[:, 1], color=BLUE, marker='D', s=50, label="BC")
-    ax[0].scatter(data_13[:, 0], data_13[:, 1], color=BLUE, marker='o', s=50)
+    ax[0].scatter(data_13[:, 0], data_13[:, 1], color=GREY, marker='o', s=50, facecolors='none')
 
     ax[0].scatter(data_1b[:, 0], data_1b[:, 1], color=GREY, marker='o', s=15)
     ax[0].scatter(data_3b[:, 0], data_3b[:, 1], color=GREY, marker='o', s=15)
-    ax[0].scatter(data_9b[:, 0], data_9b[:, 1], color=GREY, marker='o', s=15)
+    #ax[0].scatter(data_9b[:, 0], data_9b[:, 1], color=GREY, marker='o', s=15)
     ax[0].scatter(data_12b[:, 0], data_12b[:, 1], color=GREY, marker='o', s=15)
 
 
@@ -621,13 +622,28 @@ def sg():
 
 
 def stdp():
+    # params
+    FONTSIZE = 12
+    Y_MAJORTICKS_LABELSIZE = 12
+    X_MAJORTICKS_LABELSIZE = 12
+    MARKERSIZE = 50
+    AXISWIDTH = 1.0
+    FIGWIDTH = 5.6 # 6.3
+    X_MAJORTICKS_LENGTH = 10
+    Y_MAJORTICKS_LENGTH = 10
+    X_MAJORTICKS_WIDTH = 1.0
+    Y_MAJORTICKS_WIDTH = 1.0
+    BOTTOM_WIDTH = AXISWIDTH
+    BOTTOM_POS = ('outward', 7)
+    FIGSIZE = (FIGWIDTH, FIGWIDTH * (2/3))
+
     # generate random data
     # Parameters
     h=0.001 # timestep width
     t_sim=100 # timesteps
     lambda_j = 100 # presyn decay rate
     lambda_i = 100 # postsyn decay rate
-    spike_train_j = [1,5,10,20,21]
+    spike_train_j = [1,5,10,21]
     spike_train_i = [11,18,40]
     w_init = 0.0 # synaptic weight
     w_max = 5.0
@@ -707,12 +723,12 @@ def stdp():
         ax = [ax]
 
     # j spikes
-    ax[0].scatter(np.where(spikes_j > 0)[0], spikes_j[spikes_j > 0], label="j spikes", s=100, marker='.', color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False)
+    ax[0].scatter(np.where(spikes_j > 0)[0], spikes_j[spikes_j > 0], label="j spikes", s=MARKERSIZE, marker='.', color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False)
     ## y axis
     ax[0].set_yticks([])
     ax[0].set_ylim(0, 2)
     ax[0].yaxis.set_label_coords(*Y_AXIS_COORDS)
-    ax[0].set_ylabel("j", fontsize=FONTSIZE, fontweight='bold')
+    ax[0].set_ylabel("j", fontsize=FONTSIZE)
     ## x axis
     ax[0].set_xticks([])
     ax[0].tick_params(axis='x', bottom=False, labelbottom=False)
@@ -729,7 +745,7 @@ def stdp():
     ax[1].set_yticks([0,max(kj)], ["", ""])
     ax[1].set_ylim(0,max(kj))
     ax[1].yaxis.set_label_coords(*Y_AXIS_COORDS)
-    ax[1].set_ylabel("kj", fontsize=FONTSIZE, fontweight='bold')
+    ax[1].set_ylabel("kj", fontsize=FONTSIZE)
     ax[1].tick_params(axis='y', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE)
     ax[1].spines['left'].set_position(BOTTOM_POS)
     ax[1].spines['left'].set_linewidth(BOTTOM_WIDTH)
@@ -744,12 +760,12 @@ def stdp():
     ax[1].spines['right'].set_visible(False)
 
     # i spikes
-    ax[2].scatter(np.where(spikes_i > 0)[0], spikes_i[spikes_i > 0], label="i spikes", s=100, marker='.', color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False)
+    ax[2].scatter(np.where(spikes_i > 0)[0], spikes_i[spikes_i > 0], label="i spikes", s=MARKERSIZE, marker='.', color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False)
     ## y axis
     ax[2].set_yticks([])
     ax[2].set_ylim(0, 2)
     ax[2].yaxis.set_label_coords(*Y_AXIS_COORDS)
-    ax[2].set_ylabel("i", fontsize=FONTSIZE, fontweight='bold')
+    ax[2].set_ylabel("i", fontsize=FONTSIZE)
     ## x axis
     ax[2].set_xticks([])
     ax[2].tick_params(axis='x', bottom=False, labelbottom=False)
@@ -763,15 +779,19 @@ def stdp():
     # i trace
     ax[3].plot(ti_axis, ki, label="ki exact, time-based", color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False)
     ## y axis
-    ax[3].set_yticks([])
+    ax[3].set_yticks([0,max(kj)], ["", ""])
+    ax[3].set_ylim(0,max(kj))
     ax[3].yaxis.set_label_coords(*Y_AXIS_COORDS)
-    ax[3].set_ylabel("ki", fontsize=FONTSIZE, fontweight='bold')
+    ax[3].set_ylabel("ki", fontsize=FONTSIZE)
+    ax[3].tick_params(axis='y', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE)
+    ax[3].spines['left'].set_position(BOTTOM_POS)
+    ax[3].spines['left'].set_linewidth(BOTTOM_WIDTH)
     ## x axis
     ax[3].set_xticks([])
     ax[3].tick_params(axis='x', bottom=False, labelbottom=False)
     ax[3].tick_params(axis='x', which='minor', bottom=False, labelbottom=False)    
     ## other axes
-    ax[3].spines['left'].set_visible(False)
+    #ax[1].spines['left'].set_visible(False)
     ax[3].spines['bottom'].set_visible(False)
     ax[3].spines['top'].set_visible(False)
     ax[3].spines['right'].set_visible(False)
@@ -779,21 +799,24 @@ def stdp():
     # dw
     ax[4].plot(w, label="ki exact, time-based", color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False, drawstyle='steps-post')
     ## y axis
-    ax[4].set_yticks([])
+    ax[4].set_yticks([0,max(w)], ["", ""])
+    ax[4].set_ylim(0,max(w))
     ax[4].yaxis.set_label_coords(*Y_AXIS_COORDS)
-    ax[4].set_ylabel("w", fontsize=FONTSIZE, fontweight='bold')
+    ax[4].set_ylabel("w", fontsize=FONTSIZE)
+    ax[4].tick_params(axis='y', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE)
+    ax[4].spines['left'].set_position(BOTTOM_POS)
+    ax[4].spines['left'].set_linewidth(BOTTOM_WIDTH)
     ## x axis
     ax[4].set_xticks([0, len(w)])
     ax[4].set_xlim(0, len(w))
     ax[4].xaxis.set_label_coords(*X_AXIS_COORDS)
-    ax[4].set_xlabel("Time [ms]", fontsize=FONTSIZE, fontweight='bold')
+    ax[4].set_xlabel("Time [ms]", fontsize=FONTSIZE)
     #ax[4].xaxis.set_minor_locator(AutoMinorLocator(10))
     ax[4].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE)
     ax[4].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH)
     ax[4].spines['bottom'].set_position(BOTTOM_POS)
     ax[4].spines['bottom'].set_linewidth(BOTTOM_WIDTH)
     ## other axes
-    ax[4].spines['left'].set_visible(False)
     ax[4].spines['top'].set_visible(False)
     ax[4].spines['right'].set_visible(False)
 
@@ -809,6 +832,23 @@ def stdp():
 
 
 def lif():
+    # params
+    FONTSIZE = 15
+    Y_MAJORTICKS_LABELSIZE = 15
+    X_MAJORTICKS_LABELSIZE = 15
+    MARKERSIZE = 50
+    AXISWIDTH = 1.0
+    FIGWIDTH = 5.6 # 6.3
+    X_MAJORTICKS_LENGTH = 10
+    Y_MAJORTICKS_LENGTH = 10
+    X_MAJORTICKS_WIDTH = 1.0
+    Y_MAJORTICKS_WIDTH = 1.0
+    BOTTOM_WIDTH = AXISWIDTH
+    BOTTOM_POS = ('outward', 4)
+    LEFT_WIDTH = AXISWIDTH
+    LEFT_POS = ('outward', 6)
+    FIGSIZE = (FIGWIDTH, FIGWIDTH * (2/3))
+
     h     = 1 # ms
     K     = 101 # ms
     v     = np.zeros([K, 1])
@@ -843,13 +883,13 @@ def lif():
 
     # plot results
     fig, ax = plt.subplots(3, 1, figsize=FIGSIZE, sharex=True,gridspec_kw={'height_ratios': [0.2, 1, 0.2]})
-    fig.subplots_adjust(hspace=0.05)
+    fig.subplots_adjust(hspace=0.2)
     if type(ax) is not list and type(ax) is not np.ndarray:
         ax = [ax]
 
-    FONTSIZE = 20
-    Y_MAJORTICKS_LABELSIZE = 25
-    X_MAJORTICKS_LABELSIZE = 25
+    # FONTSIZE = 20
+    # Y_MAJORTICKS_LABELSIZE = 25
+    # X_MAJORTICKS_LABELSIZE = 25
     ## input spikes
     ax[0].scatter(np.where(o_in > 0)[0], o_in[o_in>0], s=100, marker=".", color=BLUE, linewidth=LINEWIDTH, linestyle="solid", clip_on=False)
     ## x axis
@@ -861,8 +901,8 @@ def lif():
     ax[0].set_yticks([])
     ax[0].tick_params(axis='y', bottom=False, labelbottom=False)
     ax[0].spines['left'].set_visible(False)
-    ax[0].yaxis.set_label_coords(-0.06, 0.5)
-    ax[0].set_ylabel(r"$\sum_j \boldsymbol{o}_\boldsymbol{j}\boldsymbol{(t)}$", fontsize=FONTSIZE, fontweight='bold')
+    ax[0].yaxis.set_label_coords(-0.04, 0.55)
+    ax[0].set_ylabel(r"$\sum_j o_j(t)$", fontsize=FONTSIZE)
     ## other axes
     ax[0].spines['top'].set_visible(False)
     ax[0].spines['right'].set_visible(False)
@@ -879,7 +919,7 @@ def lif():
     ax[1].set_yticks([0, v_thresh*1.0])
     ax[1].set_ylim(0, v_thresh*1.0)
     ax[1].yaxis.set_label_coords(-0.08, 0.5)
-    ax[1].set_ylabel(r"$\boldsymbol{u(t)}/\boldsymbol{u}_\boldsymbol{t}$", fontsize=FONTSIZE) # , fontweight='bold') # uₜ
+    ax[1].set_ylabel(r"$u(t)/u_t$", fontsize=FONTSIZE) # , fontweight='bold') # uₜ
     ax[1].yaxis.set_minor_locator(AutoMinorLocator(10))
     ax[1].tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE)
     ax[1].tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH)
@@ -906,7 +946,7 @@ def lif():
     ax[2].tick_params(axis='y', bottom=False, labelbottom=False)
     ax[2].spines['left'].set_visible(False)
     ax[2].yaxis.set_label_coords(-0.07, 0.5)
-    ax[2].set_ylabel(r"$\boldsymbol{o}_\boldsymbol{i}\boldsymbol{(t)}$", fontsize=FONTSIZE, fontweight='bold')
+    ax[2].set_ylabel(r"$o_i(t)$", fontsize=FONTSIZE)
     ## other axes
     ax[2].spines['top'].set_visible(False)
     ax[2].spines['right'].set_visible(False)
