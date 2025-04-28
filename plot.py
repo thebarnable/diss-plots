@@ -31,6 +31,12 @@ GREY = "#636363"
 LIGHTGREY = "#c9c5c5"
 BLACK = "#000000"
 
+GREENS = ["#90998A", "#8A9982", "#849979", "#7C996D"]
+YELLOWS = ["#f2b879", "#f2cfaa", "#f2c391", "#f2b879"]
+BLUES = ["#9ea5b0", "#8d9ab0", "#7b8fb0", "#6a85b0"]
+REDS = ["#d1bcbc", "#d1a7a7", "#d19292", "#d17d7d"]
+VIOLETS = ["#9a7c9f", "#a99fb1"]
+
 PLOT=True
 OUTPUT="plots"
 
@@ -962,8 +968,170 @@ def lif():
     plt.clf()
     plt.close()
 
+def neuroaix_pies():
+    FONTSIZE = 8
+    FIGWIDTH = 6.3 # 5.6
+    FIGSIZE = (FIGWIDTH, FIGWIDTH * (3/3))
+    facecolor = "#eaeaf2"
 
-def neuroaix_brams():
+    colors = [RED, BLUE, GREEN, YELLOW, VIOLET]
+    colors_finegrain = [*REDS[0:2], *BLUES, *GREENS, *YELLOWS, *VIOLETS]
+
+    font_color = GREY
+    size = 0.3
+    rad = 0.7
+    annot_dist = 0.3
+    label_dist = 0.4
+
+    fig, ax = plt.subplots(2, 2, figsize=FIGSIZE, facecolor=facecolor)
+
+    ## LUTs static
+    labels = ["Memory", "Communication", "Neural Network", "Control"]
+    vals = [35768, 63201, 77895, 75411]
+    labels_finegrain = ["Spike\nDispatcher", "MiG",
+                        "Scheduler", "Flow Control", "Auroras", "Router",
+                        "Ring Buffers", "Load Balancing", "Local Router", "ODE Solvers",
+                        "MicroBlaze", "Spike Logging", "Others", "AXI/AXIS\nInterconnect\n"]
+    vals_finegrain = ["5216", "30552",
+                        "637", "11028", "14013", "37523",
+                        "5950", "6972", "18564", "46409",
+                        "3227", "4285", "10915", "56984"]
+
+    percs_glob = ["2.09%", "12.26%",
+                    "0.26%", "4.42%", "5.62%", "15.05%",
+                    "2.39%", "2.80%", "7.45%", "18.62%",
+                    "1.29%", "1.72%", "4.38%", "22.86%"]
+    
+    patches, texts = ax[0][0].pie(vals,
+                            radius=rad - size,
+                            startangle=50,
+                            colors=colors,
+                            labels=None,
+                            textprops={"color": font_color, "fontsize": 12, "weight": "bold"},
+                            wedgeprops=dict(width=size, edgecolor="w"))
+
+    for t in texts:
+        t.set_horizontalalignment("center")
+
+    patches, texts = ax[0][0].pie(vals_finegrain,
+                            radius=rad,
+                            startangle=50,
+                            colors=colors_finegrain,
+                            wedgeprops=dict(width=size, edgecolor="w"))
+
+    kw = dict(arrowprops=dict(arrowstyle="-", color=font_color), zorder=0, va="center")
+
+    for i, p in enumerate(patches):
+        if labels_finegrain[i] == "Scheduler" or labels_finegrain[i] == "MicroBlaze":
+            xdist = 0.85
+            ydist = 1.3
+        elif labels_finegrain[i] == "AXI/AXIS\nInterconnect\n":
+            xdist = 0.9
+            ydist = 0.5
+        elif labels_finegrain[i] == "Load Balancing":
+            xdist = 0.6
+            ydist = 1.2
+        elif labels_finegrain[i] == "Local Router":
+            xdist = 0.6
+            ydist = 1.2
+        elif labels_finegrain[i] == "ODE Solvers":
+            xdist = 0.6
+            ydist = 1
+        elif labels_finegrain[i] == "Spike Logging":
+            xdist = 0.775
+            ydist = 1.2
+        elif labels_finegrain[i] == "Flow Control":
+            xdist = 0.8
+            ydist = 1.2
+        elif labels_finegrain[i] == "Ring Buffers":
+            xdist = 0.8
+            ydist = 1.1
+        else:
+            xdist = 0.85
+            ydist = 1.2
+
+        ang = (p.theta2 - p.theta1) / 2. + p.theta1
+        y = np.sin(np.deg2rad(ang))
+        x = np.cos(np.deg2rad(ang))
+        horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
+        connectionstyle = "angle,angleA=0,angleB={}".format(ang)
+        kw["arrowprops"].update({"connectionstyle": connectionstyle})
+        ax[0][0].annotate(labels_finegrain[i] + " (" + percs_glob[i] + ")", xy=(annot_dist * x, annot_dist * y), xytext=(xdist * np.sign(x), ydist * y),
+                    horizontalalignment=horizontalalignment, fontsize=FONTSIZE, **kw)
+
+    for t in texts:
+        t.set_horizontalalignment("center")    
+
+    ## LUTs plastic
+    labels = ["Memory", "Communication", "Neural Network", "Control", "Plasticity"]
+    vals = [35768, 63201, 77895, 72424, 148592]
+    labels_finegrain = ["Spike\nDispatcher", "MiG",
+                        "Scheduler", "Flow Control", "Auroras", "Router",
+                        "Ring Buffers", "Load Balancing", "Local Router", "ODE Solvers",
+                        "MicroBlaze", "Spike Logging", "Others", "AXI/AXIS\nInterconnect\n",
+                        "Spike Core", "Plasticity Core"]
+    vals_finegrain = ["5216", "30552",
+                        "637", "11028", "14013", "37523",
+                        "5950", "6972", "18564", "46409",
+                        "3227", "4285", "7928", "56984",
+                        "102000", "46592"]
+
+    percs_glob = ["1.31%", "7.68%",
+                    "0.16%", "2.77%", "3.52%", "9.43%",
+                    "1.50%", "1.75%", "4.67%", "11.66%",
+                    "0.81%", "1.08%", "1.99%", "14.32%",
+                    "25.64%", "11.71%"]
+
+    patches, texts = ax[1][0].pie(vals,
+                            radius=rad - size,
+                            startangle=50,
+                            colors=colors,
+                            labels=None,
+                            textprops={"color": font_color, "fontsize": 12, "weight": "bold"},
+                            wedgeprops=dict(width=size, edgecolor="w"))
+
+    for t in texts:
+        t.set_horizontalalignment("center")
+
+    patches, texts = ax[1][0].pie(vals_finegrain,
+                            radius=rad,
+                            startangle=50,
+                            colors=colors_finegrain,
+                            wedgeprops=dict(width=size, edgecolor="w"))
+
+    kw = dict(arrowprops=dict(arrowstyle="-", color=font_color), zorder=0, va="center")
+
+    for i, p in enumerate(patches):
+        if labels_finegrain[i] == "Scheduler" or labels_finegrain[i] == "MicroBlaze":
+            xdist = 0.85
+            ydist = 1.3
+        elif labels_finegrain[i] == "AXI/AXIS\nInterconnect\n":
+            xdist = 0.9
+            ydist = 1.3
+        elif labels_finegrain[i] == "Load Balancing":
+            xdist = 0.8
+            ydist = 1.2
+        elif labels_finegrain[i] == "Spike Logging":
+            xdist = 0.775
+            ydist = 1.2
+        else:
+            xdist = 0.85
+            ydist = 1.2
+
+        ang = (p.theta2 - p.theta1) / 2. + p.theta1
+        y = np.sin(np.deg2rad(ang))
+        x = np.cos(np.deg2rad(ang))
+        horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
+        connectionstyle = "angle,angleA=0,angleB={}".format(ang)
+        kw["arrowprops"].update({"connectionstyle": connectionstyle})
+        ax[1][0].annotate(labels_finegrain[i] + " (" + percs_glob[i] + ")", xy=(annot_dist * x, annot_dist * y), xytext=(xdist * np.sign(x), ydist * y),
+                    horizontalalignment=horizontalalignment, fontsize=FONTSIZE, **kw)
+
+    for t in texts:
+        t.set_horizontalalignment("center")    
+
+
+    ## BRAMS static
     labels = ["Memory", "Communication", "Neural Network", "Control"]
     vals = [40, 80, 297, 35]
     labels_finegrain = ["MiG", "Spike Dispatcher",
@@ -979,32 +1147,96 @@ def neuroaix_brams():
                     "0.00%", "5.53%", "7.08%", "53.10%",
                     "0.00%", "0.44%", "1.99%", "5.31%"]
 
-    colors = [GREEN, YELLOW, BLUE, RED]
-    colors_finegrain = ["#8c9982", "#80996e",  # GREEN
-                        "#f2b879", "#f2cfaa", "#f2c391", "#f2b879",  # YELLOW
-                        "#9ea5b0", "#8d9ab0", "#7b8fb0", "#6a85b0",  # BLUE
-                        "#d1bcbc", "#d1a7a7", "#d19292", "#d17d7d"]  # RED
-    font_color = GREY
-    size = 0.3
-    rad = 0.8
-
-    facecolor = "#eaeaf2"
-    fig, ax = plt.subplots(figsize=(10, 6), facecolor=facecolor)
-    patches, texts = ax.pie(vals,
+    patches, texts = ax[0][1].pie(vals,
                             radius=rad - size,
                             startangle=35,
                             colors=colors,
                             labels=None,
-                            labeldistance=0.6,
                             textprops={"color": font_color, "fontsize": 8, "weight": "bold"},
                             wedgeprops=dict(width=size, edgecolor="w"))
 
     for t in texts:
         t.set_horizontalalignment("center")
 
-    plt.legend(patches, labels, loc="lower left", bbox_to_anchor=(-0.64, -0.15, 0.3, 0.5), fontsize=24)
+    #plt.legend(patches, labels, loc="lower left", bbox_to_anchor=(-0.64, -0.15, 0.3, 0.5), fontsize=24)
 
-    patches, texts = ax.pie(vals_finegrain,
+    patches, texts = ax[0][1].pie(vals_finegrain,
+                            radius=rad,
+                            startangle=35,
+                            colors=colors_finegrain,
+                            wedgeprops=dict(width=size, edgecolor="w"))
+
+    kw = dict(arrowprops=dict(arrowstyle="-", color=font_color), zorder=0, va="center")
+
+    for i, p in enumerate(patches):
+        if percs_glob[i] == "0.00%" or labels_finegrain[i] == "Others":  # .startswith("0"):
+            print("skipping " + labels_finegrain[i])
+            continue
+
+        if labels_finegrain[i] == "Ring Buffers":
+            xdist = 0.3
+            ydist = 0.9
+        elif labels_finegrain[i] == "Spike Dispatcher":
+            xdist = 0.3
+        elif labels_finegrain[i] == "MicroBlaze":
+            xdist = 0.75
+            ydist = 1.15
+        elif labels_finegrain[i] == "Spike\nLogging":
+            xdist = 0.9
+        elif labels_finegrain[i] == "Load Balancing":
+            xdist = 0.8
+        elif labels_finegrain[i] == "Auroras":
+            xdist = -0.5
+            ydist = 1.4
+        else:
+            xdist = 0.85
+            ydist = 1.2
+
+        ang = (p.theta2 - p.theta1) / 2. + p.theta1
+        y = np.sin(np.deg2rad(ang))
+        x = np.cos(np.deg2rad(ang))
+        horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
+        connectionstyle = "angle,angleA=0,angleB={}".format(ang)
+        kw["arrowprops"].update({"connectionstyle": connectionstyle})
+        ax[0][1].annotate(labels_finegrain[i] + " (" + percs_glob[i] + ")", xy=(annot_dist * x, annot_dist * y), xytext=(xdist * np.sign(x), ydist * y),
+                    horizontalalignment=horizontalalignment, fontsize=FONTSIZE, **kw)
+
+    for t in texts:
+        t.set_horizontalalignment("center")    
+
+    ## BRAMs plastic
+    labels = ["Memory", "Communication", "Neural Network", "Control", "Plasticity"]
+    vals = [40, 80, 177, 35, 234]
+    labels_finegrain = ["MiG", "Spike Dispatcher",
+                        "Flow Control", "Scheduler", "Router", "Auroras",
+                        "Local Router", "ODE Solvers", "Load Balancing", "Ring Buffers",
+                        "AXI/AXIS Interconnect", "Others", "Spike\nLogging", "MicroBlaze",
+                        "Spike Core", "Plasticity Core"]
+    vals_finegrain = ["2", "38",
+                        "80", "0", "0", "0",
+                        "25", "0", "32", "120",
+                        "0", "2", "9", "24",
+                        "180", "54"]
+    percs_glob = ["0.35%", "6.71%",
+                    "0.00%", "0.00%", "0.00%", "14.13%",
+                    "0.00%", "4.42%", "5.65%", "21.20%",
+                    "0.00%", "0.35%", "1.59%", "4.24%",
+                    "31.80%", "9.54%"]
+
+    patches, texts = ax[1][1].pie(vals,
+                            radius=rad - size,
+                            startangle=35,
+                            colors=colors,
+                            labels=None,
+                            textprops={"color": font_color, "fontsize": 8, "weight": "bold"},
+                            wedgeprops=dict(width=size, edgecolor="w"))
+
+    for t in texts:
+        t.set_horizontalalignment("center")
+
+    #plt.legend(patches, labels, loc="lower left", bbox_to_anchor=(-0.64, -0.15, 0.3, 0.5), fontsize=24)
+
+    patches, texts = ax[1][1].pie(vals_finegrain,
                             radius=rad,
                             startangle=35,
                             colors=colors_finegrain,
@@ -1026,6 +1258,11 @@ def neuroaix_brams():
             xdist = 0.95
         elif labels_finegrain[i] == "Load Balancing":
             xdist = 0.8
+        elif labels_finegrain[i] == "Auroras":
+            xdist = -1.0
+        elif labels_finegrain[i] == "ODE Solvers":
+            xdist = -1.0
+            ydist = 2.0
         else:
             ydist = 1.2
             xdist = 0.85
@@ -1036,106 +1273,17 @@ def neuroaix_brams():
         horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
         connectionstyle = "angle,angleA=0,angleB={}".format(ang)
         kw["arrowprops"].update({"connectionstyle": connectionstyle})
-        ax.annotate(labels_finegrain[i] + " (" + percs_glob[i] + ")", xy=(0.8 * x, 0.8 * y), xytext=(xdist * np.sign(x), ydist * y),
-                    horizontalalignment=horizontalalignment, fontsize=22, **kw)
+        ax[1][1].annotate(labels_finegrain[i] + " (" + percs_glob[i] + ")", xy=(annot_dist * x, annot_dist * y), xytext=(xdist * np.sign(x), ydist * y),
+                    horizontalalignment=horizontalalignment, fontsize=FONTSIZE, **kw)
 
     for t in texts:
         t.set_horizontalalignment("center")
 
-    ax.set_title("Block-RAMs", fontsize=24, weight="bold", y=1.05)
+#    ax.set_title("Block-RAMs", fontsize=24, weight="bold", y=1.05)
 
     Path(OUTPUT).mkdir(parents=True, exist_ok=True)
     plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
-    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
-    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".png", format='png', dpi=PNG_DPI, transparent=True)
-    if PLOT:
-        plt.show()
-        plt.clf()
-    plt.clf()
-    plt.close()
-
-
-def neuroaix_luts():
-    labels = ["Memory", "Communication", "Neural Network", "Control"]
-    vals = [35768, 63201, 77895, 75411]
-    labels_finegrain = ["Spike\nDispatcher", "MiG",
-                        "Scheduler", "Flow Control", "Auroras", "Router",
-                        "Ring Buffers", "Load Balancing", "Local Router", "ODE Solvers",
-                        "MicroBlaze", "Spike Logging", "Others", "AXI/AXIS\nInterconnect\n"]
-    vals_finegrain = ["5216", "30552",
-                        "637", "11028", "14013", "37523",
-                        "5950", "6972", "18564", "46409",
-                        "3227", "4285", "10915", "56984"]
-
-    percs_glob = ["2.09%", "12.26%",
-                    "0.26%", "4.42%", "5.62%", "15.05%",
-                    "2.39%", "2.80%", "7.45%", "18.62%",
-                    "1.29%", "1.72%", "4.38%", "22.86%"]
-
-    colors = [GREEN, YELLOW, BLUE, RED]
-    colors_finegrain = ["#8c9982", "#80996e",  # GREEN
-                        "#f2dbc2", "#f2cfaa", "#f2c391", "#f2b879",  # YELLOW
-                        "#9ea5b0", "#8d9ab0", "#7b8fb0", "#6a85b0",  # BLUE
-                        "#d1bcbc", "#d1a7a7", "#d19292", "#d17d7d"]  # RED
-    font_color = GREY
-    size = 0.3
-    rad = 0.8
-
-    facecolor = "#eaeaf2"
-    fig, ax = plt.subplots(figsize=(10, 6), facecolor=facecolor)
-    patches, texts = ax.pie(vals,
-                            radius=rad - size,
-                            startangle=50,
-                            colors=colors,
-                            labels=None,
-                            labeldistance=0.6,
-                            textprops={"color": font_color, "fontsize": 12, "weight": "bold"},
-                            wedgeprops=dict(width=size, edgecolor="w"))
-
-    for t in texts:
-        t.set_horizontalalignment("center")
-
-    patches, texts = ax.pie(vals_finegrain,
-                            radius=rad,
-                            startangle=50,
-                            colors=colors_finegrain,
-                            wedgeprops=dict(width=size, edgecolor="w"))
-
-    kw = dict(arrowprops=dict(arrowstyle="-", color=font_color), zorder=0, va="center")
-
-    for i, p in enumerate(patches):
-        if labels_finegrain[i] == "Scheduler" or labels_finegrain[i] == "MicroBlaze":
-            ydist = 1.3
-            xdist = 0.85
-        elif labels_finegrain[i] == "AXI/AXIS\nInterconnect\n":
-            ydist = 1.3
-            xdist = 0.9
-        elif labels_finegrain[i] == "Load Balancing":
-            xdist = 0.8
-            ydist = 1.2
-        elif labels_finegrain[i] == "Spike Logging":
-            xdist = 0.775
-            ydist = 1.2
-        else:
-            ydist = 1.2
-            xdist = 0.85
-
-        ang = (p.theta2 - p.theta1) / 2. + p.theta1
-        y = np.sin(np.deg2rad(ang))
-        x = np.cos(np.deg2rad(ang))
-        horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
-        connectionstyle = "angle,angleA=0,angleB={}".format(ang)
-        kw["arrowprops"].update({"connectionstyle": connectionstyle})
-        ax.annotate(labels_finegrain[i] + " (" + percs_glob[i] + ")", xy=(0.8 * x, 0.8 * y), xytext=(xdist * np.sign(x), ydist * y),
-                    horizontalalignment=horizontalalignment, fontsize=22, **kw)
-
-    for t in texts:
-        t.set_horizontalalignment("center")
-
-    ax.set_title("Look-up Tables", fontsize=24, weight="bold", y=1.05)
-
-    Path(OUTPUT).mkdir(parents=True, exist_ok=True)
-    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
+    plt.rcParams['svg.fonttype'] = 'none'
     plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
     plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".png", format='png', dpi=PNG_DPI, transparent=True)
     if PLOT:
@@ -1251,6 +1399,7 @@ def neuroaix_acc_scaling():
     y_inc3000 = 4.06
     y_epyc = 1.88
     y_spinnaker = 1.0
+
 
     fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
     ax = [ax]
