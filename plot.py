@@ -7,6 +7,7 @@ from scipy.signal import butter, filtfilt
 from scipy.spatial.distance import euclidean, correlation #cosine, cityblock
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset, zoomed_inset_axes
 from scipy.interpolate import interp1d
+from scipy.interpolate import make_interp_spline, BSpline
 import numpy as np
 import os
 import sys
@@ -951,6 +952,496 @@ def lif():
     ax[2].spines['top'].set_visible(False)
     ax[2].spines['right'].set_visible(False)
 
+    Path(OUTPUT).mkdir(parents=True, exist_ok=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".png", format='png', dpi=PNG_DPI, transparent=True)
+    if PLOT:
+        plt.show()
+        plt.clf()
+    plt.clf()
+    plt.close()
+
+def neuroaix_brams():
+    labels = ["Memory", "Communication", "Neural Network", "Control"]
+    vals = [40, 80, 297, 35]
+    labels_finegrain = ["MiG", "Spike Dispatcher",
+                        "Flow Control", "Scheduler", "Router", "Auroras",
+                        "Local Router", "ODE Solvers", "Load Balancing", "Ring Buffers",
+                        "AXI/AXIS Interconnect", "Others", "Spike\nLogging", "MicroBlaze"]
+    vals_finegrain = ["2", "38",
+                        "80", "0", "0", "0",
+                        "25", "0", "32", "240",
+                        "0", "2", "9", "24"]
+    percs_glob = ["0.44%", "8.41%",
+                    "0.00%", "0.00%", "0.00%", "17.70%",
+                    "0.00%", "5.53%", "7.08%", "53.10%",
+                    "0.00%", "0.44%", "1.99%", "5.31%"]
+
+    colors = [GREEN, YELLOW, BLUE, RED]
+    colors_finegrain = ["#8c9982", "#80996e",  # GREEN
+                        "#f2b879", "#f2cfaa", "#f2c391", "#f2b879",  # YELLOW
+                        "#9ea5b0", "#8d9ab0", "#7b8fb0", "#6a85b0",  # BLUE
+                        "#d1bcbc", "#d1a7a7", "#d19292", "#d17d7d"]  # RED
+    font_color = GREY
+    size = 0.3
+    rad = 0.8
+
+    facecolor = "#eaeaf2"
+    fig, ax = plt.subplots(figsize=(10, 6), facecolor=facecolor)
+    patches, texts = ax.pie(vals,
+                            radius=rad - size,
+                            startangle=35,
+                            colors=colors,
+                            labels=None,
+                            labeldistance=0.6,
+                            textprops={"color": font_color, "fontsize": 8, "weight": "bold"},
+                            wedgeprops=dict(width=size, edgecolor="w"))
+
+    for t in texts:
+        t.set_horizontalalignment("center")
+
+    plt.legend(patches, labels, loc="lower left", bbox_to_anchor=(-0.64, -0.15, 0.3, 0.5), fontsize=24)
+
+    patches, texts = ax.pie(vals_finegrain,
+                            radius=rad,
+                            startangle=35,
+                            colors=colors_finegrain,
+                            wedgeprops=dict(width=size, edgecolor="w"))
+
+    kw = dict(arrowprops=dict(arrowstyle="-", color=font_color), zorder=0, va="center")
+
+    for i, p in enumerate(patches):
+        if percs_glob[i] == "0.00%" or labels_finegrain[i] == "Others":  # .startswith("0"):
+            print("skipping " + labels_finegrain[i])
+            continue
+
+        if labels_finegrain[i] == "Ring Buffers":
+            ydist = 0.9
+            xdist = 0.8
+        elif labels_finegrain[i] == "Spike Dispatcher":
+            xdist = 0.5
+        elif labels_finegrain[i] == "Spike\nLogging":
+            xdist = 0.95
+        elif labels_finegrain[i] == "Load Balancing":
+            xdist = 0.8
+        else:
+            ydist = 1.2
+            xdist = 0.85
+
+        ang = (p.theta2 - p.theta1) / 2. + p.theta1
+        y = np.sin(np.deg2rad(ang))
+        x = np.cos(np.deg2rad(ang))
+        horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
+        connectionstyle = "angle,angleA=0,angleB={}".format(ang)
+        kw["arrowprops"].update({"connectionstyle": connectionstyle})
+        ax.annotate(labels_finegrain[i] + " (" + percs_glob[i] + ")", xy=(0.8 * x, 0.8 * y), xytext=(xdist * np.sign(x), ydist * y),
+                    horizontalalignment=horizontalalignment, fontsize=22, **kw)
+
+    for t in texts:
+        t.set_horizontalalignment("center")
+
+    ax.set_title("Block-RAMs", fontsize=24, weight="bold", y=1.05)
+
+    Path(OUTPUT).mkdir(parents=True, exist_ok=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".png", format='png', dpi=PNG_DPI, transparent=True)
+    if PLOT:
+        plt.show()
+        plt.clf()
+    plt.clf()
+    plt.close()
+
+
+def neuroaix_luts():
+    labels = ["Memory", "Communication", "Neural Network", "Control"]
+    vals = [35768, 63201, 77895, 75411]
+    labels_finegrain = ["Spike\nDispatcher", "MiG",
+                        "Scheduler", "Flow Control", "Auroras", "Router",
+                        "Ring Buffers", "Load Balancing", "Local Router", "ODE Solvers",
+                        "MicroBlaze", "Spike Logging", "Others", "AXI/AXIS\nInterconnect\n"]
+    vals_finegrain = ["5216", "30552",
+                        "637", "11028", "14013", "37523",
+                        "5950", "6972", "18564", "46409",
+                        "3227", "4285", "10915", "56984"]
+
+    percs_glob = ["2.09%", "12.26%",
+                    "0.26%", "4.42%", "5.62%", "15.05%",
+                    "2.39%", "2.80%", "7.45%", "18.62%",
+                    "1.29%", "1.72%", "4.38%", "22.86%"]
+
+    colors = [GREEN, YELLOW, BLUE, RED]
+    colors_finegrain = ["#8c9982", "#80996e",  # GREEN
+                        "#f2dbc2", "#f2cfaa", "#f2c391", "#f2b879",  # YELLOW
+                        "#9ea5b0", "#8d9ab0", "#7b8fb0", "#6a85b0",  # BLUE
+                        "#d1bcbc", "#d1a7a7", "#d19292", "#d17d7d"]  # RED
+    font_color = GREY
+    size = 0.3
+    rad = 0.8
+
+    facecolor = "#eaeaf2"
+    fig, ax = plt.subplots(figsize=(10, 6), facecolor=facecolor)
+    patches, texts = ax.pie(vals,
+                            radius=rad - size,
+                            startangle=50,
+                            colors=colors,
+                            labels=None,
+                            labeldistance=0.6,
+                            textprops={"color": font_color, "fontsize": 12, "weight": "bold"},
+                            wedgeprops=dict(width=size, edgecolor="w"))
+
+    for t in texts:
+        t.set_horizontalalignment("center")
+
+    patches, texts = ax.pie(vals_finegrain,
+                            radius=rad,
+                            startangle=50,
+                            colors=colors_finegrain,
+                            wedgeprops=dict(width=size, edgecolor="w"))
+
+    kw = dict(arrowprops=dict(arrowstyle="-", color=font_color), zorder=0, va="center")
+
+    for i, p in enumerate(patches):
+        if labels_finegrain[i] == "Scheduler" or labels_finegrain[i] == "MicroBlaze":
+            ydist = 1.3
+            xdist = 0.85
+        elif labels_finegrain[i] == "AXI/AXIS\nInterconnect\n":
+            ydist = 1.3
+            xdist = 0.9
+        elif labels_finegrain[i] == "Load Balancing":
+            xdist = 0.8
+            ydist = 1.2
+        elif labels_finegrain[i] == "Spike Logging":
+            xdist = 0.775
+            ydist = 1.2
+        else:
+            ydist = 1.2
+            xdist = 0.85
+
+        ang = (p.theta2 - p.theta1) / 2. + p.theta1
+        y = np.sin(np.deg2rad(ang))
+        x = np.cos(np.deg2rad(ang))
+        horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
+        connectionstyle = "angle,angleA=0,angleB={}".format(ang)
+        kw["arrowprops"].update({"connectionstyle": connectionstyle})
+        ax.annotate(labels_finegrain[i] + " (" + percs_glob[i] + ")", xy=(0.8 * x, 0.8 * y), xytext=(xdist * np.sign(x), ydist * y),
+                    horizontalalignment=horizontalalignment, fontsize=22, **kw)
+
+    for t in texts:
+        t.set_horizontalalignment("center")
+
+    ax.set_title("Look-up Tables", fontsize=24, weight="bold", y=1.05)
+
+    Path(OUTPUT).mkdir(parents=True, exist_ok=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".png", format='png', dpi=PNG_DPI, transparent=True)
+    if PLOT:
+        plt.show()
+        plt.clf()
+    plt.clf()
+    plt.close()
+
+
+def neuroaix_util():
+    labels = ["LUT", "BRAM", "DSP", "IO", "GT", "MMCM", "PLL"]  # "BUFG",
+    percs = ["58%", "31%", "8%", "31%", "33%", "40%", "10%"]  # "100%",
+    values = [58, 31, 8, 31, 33, 40, 10]
+
+    fig, ax = plt.subplots()
+    [i.set_linewidth(1.5) for i in ax.spines.values()]
+    plt.gca().yaxis.grid(True, color=GREY, linestyle="-", zorder=0)
+    p = plt.bar(labels, values, color=BLUE, zorder=3)
+    plt.bar_label(p, labels=percs, fontsize=18, weight="bold")
+    plt.xticks(fontsize=18)
+    plt.yticks(fontsize=18)
+    plt.ylim(0, 100)
+
+    Path(OUTPUT).mkdir(parents=True, exist_ok=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".png", format='png', dpi=PNG_DPI, transparent=True)
+    if PLOT:
+        plt.show()
+        plt.clf()
+    plt.clf()
+    plt.close()
+
+
+def neuroaix_estim():
+    labels = ["23.9x", "20.4x", "20.3x", "16.6x", "12.7x", "11.0x", "10.9x"]  # , "4.1x"] #["", "", "", "", "", ""]
+    y = [0, 1, 2, 3, 4, 5, 6]
+    percs = ["...120 ns aurora latency",
+            "Latency model of neuroAIx",
+            "Measured neuroAIx",
+            "...256 neurons per node",
+            "...no DRAM\nlat. hiding",
+            "...6.4GB/s\nDRAM BW",
+            "...no long-hops"]  # , "Measured\nby\nHeittmann"]
+    # percs = ["27.9%", "22%", "8%", "31%", "33%", "100%", "40%", "10%"]
+    values = [23.9, 20.4, 20.3, 16.6, 12.7, 11.0, 10.9]  # , 4.1]
+    bl = "#6a85b0"  # 6aa8d4
+    gr = "#80996e"  # 6ad4a8
+    # barColors = ["grey","red","blue","grey","grey","grey","grey","blue"]
+    bar_colors = [bl, bl, gr, bl, bl, bl, bl]  # ,gr]
+    # hatch = "/" # "--","+","*","\\","//","/","",""
+    # barHatches = [hatch, "", "", hatch, hatch, hatch, hatch] #, ""]
+    fig, ax = plt.subplots()
+    [i.set_linewidth(1.5) for i in ax.spines.values()]
+    plt.gca().xaxis.grid(True, color="gray", linestyle="-", zorder=0)
+    p = plt.barh(y, values, color=bar_colors, zorder=3, edgecolor="w")  # "#6aa8d4" , hatch=barHatches
+    plt.bar_label(p, labels=percs, fontsize=14, label_type="center")  # , weight="bold")
+    plt.bar_label(p, labels=labels, fontsize=14)
+    plt.xticks(fontsize=14)
+    # plt.yticks(fontsize=14)
+    plt.yticks([])
+    plt.xlim(0, 31)
+
+    Path(OUTPUT).mkdir(parents=True, exist_ok=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".png", format='png', dpi=PNG_DPI, transparent=True)
+    if PLOT:
+        plt.show()
+        plt.clf()
+    plt.clf()
+    plt.close()
+
+
+def neuroaix_acc_scaling():
+    x = np.linspace(1, 80000, 100)
+    x_mid = np.linspace(1, 8000, 100)
+    x_small = np.linspace(1, 4000, 1000)
+
+    x_values = [77, 155, 385, 771, 1544, 3858, 7717, 15435, 38586, 77169]
+
+    y_nest_values = [12.26, 9.75, 3.53, 2.36, 1.82, 1.85, 1.05, 0.78, 0.47, 0.26]
+    y_nest_spl = make_interp_spline(x_values, y_nest_values, k=1)
+    y_nest = y_nest_spl(x)
+
+    y_neuroaixall_values = [33.78, 33.77, 33.73, 33.17, 32.56, 31.57, 30.82, 29.37, 24.61, 20.36]
+    y_neuroaixall_spl = make_interp_spline(x_values, y_neuroaixall_values, k=3)
+    y_neuroaixall = y_neuroaixall_spl(x)
+    
+    y_neuroaixsmall_values = [124.36, 117.02, 97.52, 42.60, 24.66, 2, 1, 0]  # , 16.4 16.4 extrapolated...
+    #y_neuroaixsmall_values = [124.36, 119.69, 115.02, 106.27, 97.52, 70, 42.60, 33.63, 24.66, 16.4]  #  16.4 extrapolated...
+    y_neuroaixsmall_spl = make_interp_spline(x_values[0:len(y_neuroaixsmall_values)], y_neuroaixsmall_values, k=3)
+    y_neuroaixsmall = y_neuroaixsmall_spl(x_small)
+
+    y_neuroaixmid_values = [62.02, 61.48, 59.80, 50.29, 40.92, 30.61, 23.95]
+    y_neuroaixmid_spl = make_interp_spline(x_values[0:len(y_neuroaixmid_values)], y_neuroaixmid_values, k=3)
+    y_neuroaixmid = y_neuroaixmid_spl(x_mid)
+
+    y_inc3000 = 4.06
+    y_epyc = 1.88
+    y_spinnaker = 1.0
+
+    #    FIGWIDTH = 5.6
+    #fig, ax = plt.subplots(figsize=(FIGWIDTH, FIGWIDTH * (9/16)))
+    fig, ax = plt.subplots(figsize=(20,12))
+    ax.set_xscale('log')
+    ax.set_yscale('log')
+
+    ax.plot(x, y_nest, lw=6.5, label='NEST (Intel Xeon)', color=GREY)
+    ax.plot(x_small[0:260], y_neuroaixsmall[0:260], '-', lw=6.5, label='neuroAIˣ (1x1)', color=RED)
+    ax.plot(x_mid, y_neuroaixmid, '-', lw=6.5, label='neuroAIˣ (4x1)', color=GREEN)
+    ax.plot(x, y_neuroaixall, lw=6.5, label='neuroAIˣ (5x7)', color=BLUE)
+
+    ax.grid(color='gainsboro', linestyle='-', linewidth=0.5)
+
+    plt.xlabel('Neurons', fontdict={'fontsize': 28})
+    plt.ylabel('Acceleration\nwith respect to BRT', fontdict={'fontsize': 28})
+
+    ax.plot(x_values[-1], y_inc3000, 'o', markersize=10, color=GREY)
+    ax.plot(x_values[-1], y_epyc, 'o', markersize=10, color=GREY)
+    ax.plot(x_values[-1], y_spinnaker, 'o', markersize=10,  color=GREY)
+
+    ax.annotate('INC-3000', xy=(x_values[-1]-2000, y_inc3000), xytext=(x_values[-1]-61000, y_inc3000), color=GREY, fontsize=28)
+                #arrowprops=dict(arrowstyle = '-', connectionstyle = 'arc3',facecolor=GREY))
+    ax.annotate('SpiNNaker', xy=(x_values[-1]-2000, y_spinnaker), xytext=(x_values[-1]-64000, y_spinnaker), color=GREY, fontsize=28)
+                #arrowprops=dict(arrowstyle = '-', connectionstyle = 'arc3',facecolor=GREY))
+    ax.annotate('NEST (AMD Epyc)', xy=(x_values[-1]-2000, y_epyc), xytext=(x_values[-1]-72700, y_epyc), color=GREY, fontsize=28)
+                #arrowprops=dict(arrowstyle = '-', connectionstyle = 'arc3',facecolor=GREY))
+
+    ax.legend(loc='lower left', fontsize=24) # prop={'size': 14}, 
+    ax.tick_params( direction = 'in')
+    plt.minorticks_off()
+    for t in ax.get_xmajorticklabels():
+        t.set_fontsize(24)
+    for t in ax.get_ymajorticklabels():
+        t.set_fontsize(24)
+
+    Path(OUTPUT).mkdir(parents=True, exist_ok=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".png", format='png', dpi=PNG_DPI, transparent=True)
+    if PLOT:
+        plt.show()
+        plt.clf()
+    plt.clf()
+    plt.close()
+
+def neuroaix_latency(scenario=2):
+    if scenario==0:  # current
+        vals =   [97, 1, 2]
+        vals_finegrain = ['0.03', '0.08', '0.16', '3.23', '94.46',
+                        '0.36', 
+                        '0.70', '0.97']
+        percs_glob = ['4s', '10s', '20s',  '6m40s', '3h15m',
+                    '45s', 
+                    '1m27s', '2m00s']
+        
+        labels = ['Preprocessing', 'Simulation', 'Postprocessing']
+    
+        labels_finegrain = ['Init', 'Neuron Gen', 'Neuron Upload', 'Synapse Upload', 'Synapse Gen',
+                        'Simulate',
+                        '2nd Order', 'Spike Download']
+        colors = [YELLOW, BLUE, RED]
+        colors_finegrain = ['#f2cfaa', '#f2cfaa', '#f2c391', '#f2c391','#f2b879',  #YELLOW
+                        '#9ea5b0',   #BLUE
+                        '#d1bcbc', '#d1a7a7']  #RED
+
+        title = "Latencies (Current) -> 3h26m26s"
+    elif scenario==1:  # w/o synapse file extraction
+        vals =   [65, 6, 29]
+        vals_finegrain = ['0.56', '1.40', '2.79', '4.19', '55.87',
+                        '6.28', 
+                        '12.15', '16.76']
+        percs_glob = ['4s', '10s', '20s', '30s', '6m40s',
+                    '45s', 
+                    '1m27s', '2m00s']
+        
+        labels = ['Preprocessing', 'Simulation', 'Postprocessing']
+    
+        labels_finegrain = ['Init', 'Neuron Gen', 'Neuron Upload', 'Synapse Gen', 'Synapse Upload',
+                        'Simulate',
+                        '2nd Order', 'Spike Download']
+        colors = [YELLOW, BLUE, RED]
+        colors_finegrain = ['#f2cfaa', '#f2cfaa', '#f2c391', '#f2c391','#f2b879',  #YELLOW
+                        '#9ea5b0',   #BLUE
+                        '#d1bcbc', '#d1a7a7']  #RED
+
+        title = "Latencies (faster synapse extraction) -> 11m56s"
+    elif scenario==2:  # w/o synapse file extraction and 1Gbit/s PCIe and synapse file compression from 12.6GB -> 3.4GB
+        vals =   [39, 20, 41]
+        vals_finegrain = ['1.74', '4.35', '8.7', '11.74', '13.04',
+                        '19.57', 
+                        '3.04', '37.83']
+        percs_glob = ['4s', '10s', '20s', '27s','30s',
+                    '45s', 
+                    '7s', '1m27s']
+        
+        labels = ['Preprocessing', 'Simulation', 'Postprocessing']
+    
+        labels_finegrain = ['Init', 'Neuron Gen', 'Neuron Upload', 'Synapse Upload', 'Synapse Gen',
+                        'Simulate',
+                        'Spike Download', '2nd Order']
+        colors = [YELLOW, BLUE, RED]
+        colors_finegrain = ['#f2cfaa', '#f2cfaa', '#f2c391', '#f2c391','#f2b879',  #YELLOW
+                        '#9ea5b0',   #BLUE
+                        '#d1bcbc', '#d1a7a7']  #RED
+
+        title = "Latencies (faster synapse extraction + 1G Ethernet) -> 3m50s"
+    elif scenario==3:  # w/o synapse file extraction and 16Gbit/s PCIe and synapse file compression from 12.6GB -> 3.4GB
+        vals =   [33, 24, 44]
+        vals_finegrain = ['1.01', '2.02', '5.05', '10.10', '15.15',
+                        '22.73', 
+                        '0.01', '39.99']
+        percs_glob = ['2s', '4s', '10s', '20s', '30s',
+                    '45s', 
+                    '0s', '1m27s']
+        
+        labels = ['Preprocessing', 'Simulation', 'Postprocessing']
+    
+        labels_finegrain = ['Synapse Upload', 'Init', 'Neuron Gen', 'Neuron Upload', 'Synapse Gen',
+                        'Simulate',
+                        'Spike Download', '2nd Order']
+        colors = [YELLOW, BLUE, RED]
+        colors_finegrain = ['#f2cfaa', '#f2cfaa', '#f2c391', '#f2c391','#f2b879',  #YELLOW
+                        '#9ea5b0',   #BLUE
+                        '#d1bcbc', '#d1a7a7']  #RED   
+        
+        title = "Latencies (faster synapse extraction + 16G PCIe) -> 3m18s"
+    elif scenario==4:  # w/o synapse file extraction and 16Gbit/s PCIe and synapse file compression from 12.6GB -> 3.4GB
+        vals =   [35.91, 20.45, 43.64]
+        vals_finegrain = ['1.82', '4.55', '0.45', '13.64', '15.45',
+                        '20.45', 
+                        '4.09', '39.55']
+        percs_glob = ['4s', '10s', '1s', '30s', '34s',
+                    '45s', 
+                    '9s', '1m27s']
+        
+        labels = ['Preprocessing', 'Simulation', 'Postprocessing']
+    
+        labels_finegrain = ['Init', 'Neuron Gen', 'Neuron Upload', 'Synapse Gen', 'Synapse Upload', 
+                        'Simulate',
+                        'Spike Download', '2nd Order']
+        colors = [YELLOW, BLUE, RED]
+        colors_finegrain = ['#f2cfaa', '#f2cfaa', '#f2c391', '#f2c391','#f2b879',  #YELLOW
+                        '#9ea5b0',   #BLUE
+                        '#d1bcbc', '#d1a7a7']  #RED   
+        
+        #title = "Latencies (faster synapse extraction + 800MB Ethernet) -> 3m40s"
+
+    font_color = GREY
+    size = 0.3
+    rad = 0.8
+
+    facecolor = '#eaeaf2'
+    fig, ax = plt.subplots(figsize=(15,9), facecolor=facecolor)
+    patches, texts = ax.pie(vals, 
+        radius=rad-size, 
+        startangle=90,
+        counterclock=False,
+        colors=colors, 
+        labels=None,
+        labeldistance=0.6,
+        textprops={'color':font_color, 'fontsize':8, 'weight':'bold'},
+        wedgeprops=dict(width=size, edgecolor='w'))
+    
+    for t in texts:
+        t.set_horizontalalignment('center')
+
+    if scenario==4:
+        plt.legend(patches, labels, fontsize=24, bbox_to_anchor=[0.3,1])
+    
+    patches, texts = ax.pie(vals_finegrain, 
+        radius=rad, 
+        startangle=90,
+        counterclock=False,
+        colors=colors_finegrain,
+        wedgeprops=dict(width=size, edgecolor='w'))
+    
+    kw = dict(arrowprops=dict(arrowstyle="-", color=font_color), zorder=0, va="center")
+
+    for i, p in enumerate(patches):
+        if percs_glob[i] == "0.00%" or labels_finegrain[i] == "Others": #.startswith('0'):
+            print("skipping " + labels_finegrain[i])
+            continue
+
+        if labels_finegrain[i] == "Neuron Gen":
+            ydist=1.1
+            xdist=0.85
+        elif labels_finegrain[i] == "Neuron Upload":
+            ydist=1.0
+            xdist=0.85      
+        else:
+            ydist=1.2
+            xdist=0.85
+
+        ang = (p.theta2 - p.theta1)/2. + p.theta1
+        y = np.sin(np.deg2rad(ang))
+        x = np.cos(np.deg2rad(ang))
+        horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
+        connectionstyle = "angle,angleA=0,angleB={}".format(ang)
+        kw["arrowprops"].update({"connectionstyle": connectionstyle})
+        ax.annotate(labels_finegrain[i]+" ("+percs_glob[i]+")", xy=(0.8*x, 0.8*y), xytext=(xdist*np.sign(x), ydist*y),
+                    horizontalalignment=horizontalalignment, fontsize=22, **kw)
+
+    for t in texts:
+        t.set_horizontalalignment('center')
+    
     Path(OUTPUT).mkdir(parents=True, exist_ok=True)
     plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
     plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
