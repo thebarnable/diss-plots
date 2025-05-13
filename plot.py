@@ -1210,6 +1210,20 @@ def neuroaix_estim():
 
 
 def neuroaix_acc_scaling():
+    # params
+    FONTSIZE = 12
+    Y_MAJORTICKS_LABELSIZE = 12
+    X_MAJORTICKS_LABELSIZE = 12
+    MARKERSIZE = 8
+    AXISWIDTH = 1.0
+    FIGWIDTH = 6.3
+    X_MAJORTICKS_LENGTH = 10
+    Y_MAJORTICKS_LENGTH = 10
+    X_MAJORTICKS_WIDTH = 1.0
+    Y_MAJORTICKS_WIDTH = 1.0
+    FIGSIZE = (FIGWIDTH, FIGWIDTH * (9/16))
+
+    # code
     x = np.linspace(1, 80000, 100)
     x_mid = np.linspace(1, 8000, 100)
     x_small = np.linspace(1, 4000, 1000)
@@ -1237,40 +1251,63 @@ def neuroaix_acc_scaling():
     y_epyc = 1.88
     y_spinnaker = 1.0
 
-    #    FIGWIDTH = 5.6
-    #fig, ax = plt.subplots(figsize=(FIGWIDTH, FIGWIDTH * (9/16)))
-    fig, ax = plt.subplots(figsize=(20,12))
-    ax.set_xscale('log')
-    ax.set_yscale('log')
+    fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
+    ax = [ax]
 
-    ax.plot(x, y_nest, lw=6.5, label='NEST (Intel Xeon)', color=GREY)
-    ax.plot(x_small[0:260], y_neuroaixsmall[0:260], '-', lw=6.5, label='neuroAIˣ (1x1)', color=RED)
-    ax.plot(x_mid, y_neuroaixmid, '-', lw=6.5, label='neuroAIˣ (4x1)', color=GREEN)
-    ax.plot(x, y_neuroaixall, lw=6.5, label='neuroAIˣ (5x7)', color=BLUE)
+    ax[0].plot(x, y_nest, linewidth=LINEWIDTH, label='NEST (Intel Xeon)', color=GREY)
+    ax[0].plot(x_small[0:260], y_neuroaixsmall[0:260], '-', linewidth=LINEWIDTH, label='neuroAIˣ (1x1)', color=RED)
+    ax[0].plot(x_mid, y_neuroaixmid, '-', linewidth=LINEWIDTH, label='neuroAIˣ (4x1)', color=GREEN)
+    ax[0].plot(x, y_neuroaixall, linewidth=LINEWIDTH, label='neuroAIˣ (5x7)', color=BLUE)
 
-    ax.grid(color='gainsboro', linestyle='-', linewidth=0.5)
+    ax[0].plot(x_values[-1], y_inc3000, 'o', markersize=MARKERSIZE, color=GREY)
+    ax[0].plot(x_values[-1], y_epyc, 'o', markersize=MARKERSIZE, color=GREY)
+    ax[0].plot(x_values[-1], y_spinnaker, 'o', markersize=MARKERSIZE,  color=GREY)
 
-    plt.xlabel('Neurons', fontdict={'fontsize': 28})
-    plt.ylabel('Acceleration\nwith respect to BRT', fontdict={'fontsize': 28})
+    ## x axis
+    ax[0].set_xscale('log')
+    # ax[0].set_xticks([4, 16, 64], ["4", "16", "64"])
+    # ax[0].set_xlim(1.5, 80)
+    ax[0].xaxis.set_label_coords(0.0, -0.08)
+    ax[0].set_xlabel("Neurons", fontsize=FONTSIZE) # , fontweight='bold'
+    #ax[0].xaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[0].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+    #ax[0].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH, right=True, top=True, direction='in')
+    ax[0].spines['bottom'].set_linewidth(AXISWIDTH)
 
-    ax.plot(x_values[-1], y_inc3000, 'o', markersize=10, color=GREY)
-    ax.plot(x_values[-1], y_epyc, 'o', markersize=10, color=GREY)
-    ax.plot(x_values[-1], y_spinnaker, 'o', markersize=10,  color=GREY)
+    ## y axis
+    ax[0].set_yscale('log')
+    # ax[0].set_yticks([0.01, 0.1, 1])
+    # ax[0].set_ylim(0.005, 2)
+    #ax[0].yaxis.set_label_coords(-0.11, 0.0)
+    ax[0].set_ylabel("Acceleration", fontsize=FONTSIZE) # , fontweight='bold'
+    #ax[0].yaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[0].tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+    #ax[0].tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH, right=True, top=True, direction='in')
+    ax[0].spines['left'].set_linewidth(AXISWIDTH)
 
-    ax.annotate('INC-3000', xy=(x_values[-1]-2000, y_inc3000), xytext=(x_values[-1]-61000, y_inc3000), color=GREY, fontsize=28)
+    ## other axes
+    ax[0].spines['top'].set_linewidth(AXISWIDTH)
+    ax[0].spines['right'].set_linewidth(AXISWIDTH)
+
+    ax[0].annotate('INC-3000', xy=(x_values[-1]-2000, y_inc3000), xytext=(x_values[-1]-61000, y_inc3000+1), color=GREY, fontsize=FONTSIZE)
                 #arrowprops=dict(arrowstyle = '-', connectionstyle = 'arc3',facecolor=GREY))
-    ax.annotate('SpiNNaker', xy=(x_values[-1]-2000, y_spinnaker), xytext=(x_values[-1]-64000, y_spinnaker), color=GREY, fontsize=28)
+    ax[0].annotate('SpiNNaker', xy=(x_values[-1]-2000, y_spinnaker), xytext=(x_values[-1]-64000, y_spinnaker+0.2), color=GREY, fontsize=FONTSIZE)
                 #arrowprops=dict(arrowstyle = '-', connectionstyle = 'arc3',facecolor=GREY))
-    ax.annotate('NEST (AMD Epyc)', xy=(x_values[-1]-2000, y_epyc), xytext=(x_values[-1]-72700, y_epyc), color=GREY, fontsize=28)
+    ax[0].annotate('NEST (AMD Epyc)', xy=(x_values[-1]-2000, y_epyc), xytext=(x_values[-1]-74000, y_epyc+0.5), color=GREY, fontsize=FONTSIZE)
                 #arrowprops=dict(arrowstyle = '-', connectionstyle = 'arc3',facecolor=GREY))
 
-    ax.legend(loc='lower left', fontsize=24) # prop={'size': 14}, 
-    ax.tick_params( direction = 'in')
+    ax[0].tick_params(direction = 'in')
     plt.minorticks_off()
-    for t in ax.get_xmajorticklabels():
-        t.set_fontsize(24)
-    for t in ax.get_ymajorticklabels():
-        t.set_fontsize(24)
+    # for t in ax.get_xmajorticklabels():
+    #     t.set_fontsize(24)
+    # for t in ax.get_ymajorticklabels():
+    #     t.set_fontsize(24)
+
+    ## grid
+    ax[0].grid(True, which='both', linestyle='-', linewidth=0.4, alpha=0.5)
+
+    ## legend
+    ax[0].legend(loc='lower left', fontsize=FONTSIZE)
 
     Path(OUTPUT).mkdir(parents=True, exist_ok=True)
     plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
