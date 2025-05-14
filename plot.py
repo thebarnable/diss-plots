@@ -962,6 +962,7 @@ def lif():
     plt.clf()
     plt.close()
 
+
 def neuroaix_brams():
     labels = ["Memory", "Communication", "Neural Network", "Control"]
     vals = [40, 80, 297, 35]
@@ -1319,6 +1320,7 @@ def neuroaix_acc_scaling():
     plt.clf()
     plt.close()
 
+
 def neuroaix_latency(scenario=2):
     if scenario==0:  # current
         vals =   [97, 1, 2]
@@ -1489,6 +1491,131 @@ def neuroaix_latency(scenario=2):
     plt.clf()
     plt.close()
 
+
+def neuroaix_sota():
+    # params
+    FONTSIZE_SMALL = 10
+    FONTSIZE = 12
+    FONTSIZE_BIG = 12
+    Y_MAJORTICKS_LABELSIZE = 12
+    X_MAJORTICKS_LABELSIZE = 12
+    MARKERSIZE = 8
+    FIGWIDTH = 6.3
+    AXISWIDTH = 1.0
+    X_MAJORTICKS_LENGTH = 10
+    Y_MAJORTICKS_LENGTH = 10
+    X_MAJORTICKS_WIDTH = 1.0
+    Y_MAJORTICKS_WIDTH = 1.0
+    FIGSIZE = (FIGWIDTH, FIGWIDTH) # (9/16)
+    ARROWPROPS = dict(
+        facecolor=GREY,     # Arrow color
+        edgecolor=GREY,     # Border color of the arrow
+        arrowstyle='-|>',   # Style of the arrow (e.g., '->', '-|>', etc.)
+        lw=1,               # Line width
+    )
+
+
+    # neuroAIx (2023)	            20,36, 0,047
+    # INC-3000 (2022) [17]	        4,06, 0,783
+    # AMD EPYC (2022) [22]	        1,88, 0,48
+    # SpiNNaker (2019) [21]	        1,00, 0,62
+    # SpiNNaker (2018) [20]	        0,05, 5,9
+    # Intel Xeon (2018) [20]	    0,22, 5,8
+    # Nvidia Tesla V100 (2018) [9]	0,54, 0,47
+    # Nvidia 1050 Ti (2018) [9]	    0,07, 2,00
+    # Nvidia Jetson (2018) [9]	    0,04, 0,30
+    # Nvidia Tesla K40c (2018) [9]	0,25, 1,08
+    # Nvidia RTX 2080 Ti (2021) [8]	0,95, 0,18
+
+    data_neuroaix = np.array([20.36, 0.047])
+    data_inc = np.array([4.06, 0.783])
+    data_epyc = np.array([1.88, 0.48])
+    data_spinn19 = np.array([1.00, 0.62])
+    data_spinn18 = np.array([0.05, 5.9])
+    data_xeon = np.array([0.22, 5.8])
+    data_v100 = np.array([0.54, 0.47])
+    data_1050 = np.array([0.07, 2.00])
+    data_jetson = np.array([0.04, 0.30])
+    data_k40c = np.array([0.25, 1.08])
+    data_2080 = np.array([0.95, 0.18])
+
+    # experiment data (from https://docs.google.com/spreadsheets/d/1l406Oo9PhM4TjKejtO-YHJUwxebz8lgmVTP1ErljXjI/edit?usp=sharing (SotA sheet))
+    # data_fpgas = np.array([[0.047, 20.36], [0.783, 4.06]])
+    # data_cpus  = np.array([[0.48, 1.88], [0.62, 1.00], [5.9, 0.05], [5.8, 0.22]])
+    # data_gpus  = np.array([[0.47, 0.54], [2.00, 0.07], [0.3, 0.04], [1.08, 0.25], [0.18, 0.95]])
+
+    data_fpgas = np.array([data_neuroaix, data_inc])
+    data_cpus  = np.array([data_epyc, data_spinn18, data_spinn19, data_xeon])
+    data_gpus  = np.array([data_v100, data_1050, data_jetson, data_k40c, data_2080])
+
+    # plot results
+    fig, ax = plt.subplots(1, 1, figsize=FIGSIZE) #, figsize=(10,7))
+    fig.subplots_adjust(top=0.8, bottom=0.15)
+    if type(ax) is not list and type(ax) is not np.ndarray:
+        ax = [ax]
+
+    # refs & arrows
+    ax[0].annotate("neuroAIx [999]", xytext=(data_neuroaix[0]*0.2, data_neuroaix[1]*1.2), xy=(data_neuroaix[0]*0.2, data_neuroaix[1]*1.2), fontsize=FONTSIZE_BIG, weight='bold')
+    ax[0].annotate("INC-3000 [999]", xytext=(data_inc[0]*0.5, data_inc[1]*1.2), xy=(data_inc[0]*0.5, data_inc[1]*1.2), fontsize=FONTSIZE_SMALL)
+    ax[0].annotate("AMD Epyc [999]", xytext=(data_epyc[0]*0.6, data_epyc[1]*0.7), xy=(data_epyc[0]*0.6, data_epyc[1]*0.7), fontsize=FONTSIZE_SMALL)
+    ax[0].annotate("SpiNNaker [999]", xytext=(data_spinn19[0]*0.4, data_spinn19[1]*1.2), xy=(data_spinn19[0]*0.4, data_spinn19[1]*1.2), fontsize=FONTSIZE_SMALL)
+    ax[0].annotate("SpiNNaker [999]", xytext=(data_spinn18[0]*0.5, data_spinn18[1]*1.2), xy=(data_spinn18[0]*0.5, data_spinn18[1]*1.2), fontsize=FONTSIZE_SMALL)
+    ax[0].annotate("Intel Xeon [999]", xytext=(data_xeon[0]*0.5, data_xeon[1]*0.7), xy=(data_xeon[0]*0.5, data_xeon[1]*0.7), fontsize=FONTSIZE_SMALL)
+    ax[0].annotate("Nvidia V100 [999]", xytext=(data_v100[0]*0.2, data_v100[1]*0.7), xy=(data_v100[0]*0.2, data_v100[1]*0.7), fontsize=FONTSIZE_SMALL)
+    ax[0].annotate("Nvidia 1050 Ti [999]", xytext=(data_1050[0]*0.5, data_1050[1]*1.2), xy=(data_1050[0]*0.5, data_1050[1]*1.2), fontsize=FONTSIZE_SMALL)
+    ax[0].annotate("Nvidia Jetson [999]", xytext=(data_jetson[0]*0.3, data_jetson[1]*0.7), xy=(data_jetson[0]*0.3, data_jetson[1]*0.7), fontsize=FONTSIZE_SMALL)
+    ax[0].annotate("Nvidia K40v [999]", xytext=(data_k40c[0]*0.5, data_k40c[1]*1.2), xy=(data_k40c[0]*0.5, data_k40c[1]*1.2), fontsize=FONTSIZE_SMALL)
+    ax[0].annotate("Nvidia RTX 2080 Ti [999]", xytext=(data_2080[0]*0.2, data_2080[1]*0.7), xy=(data_2080[0]*0.2, data_2080[1]*0.7), fontsize=FONTSIZE_SMALL)
+
+    # mnist
+    ax[0].scatter(data_fpgas[:, 0], data_fpgas[:, 1], color=GREEN, marker='o', s=50, label="FPGA")
+    ax[0].scatter(data_cpus[:, 0], data_cpus[:, 1], color=YELLOW, marker='o', s=50, label="CPU")
+    ax[0].scatter(data_gpus[:, 0], data_gpus[:, 1], color=BLUE, marker='o', s=50, label="GPU")
+
+    # x axis
+    ax[0].set_xscale('log', base=10)
+    ax[0].set_xticks([0.05, 0.1, 0.5, 1.0, 5.0, 10.0, 50.0], ["0.05", "0.10", "0.50", "1.00", "5.00", "10.00", "50.00"])
+    ax[0].set_xlim(0.01, 50)
+    #ax[0].xaxis.set_label_coords(0.0, -0.11)
+    ax[0].set_xlabel("Acceleration", fontsize=FONTSIZE) # , fontweight='bold'
+    #ax[0].xaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[0].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+    #ax[0].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH, right=True, top=True, direction='in')
+    ax[0].spines['bottom'].set_linewidth(AXISWIDTH)
+
+    ## y axis
+    ax[0].set_yscale('log', base=10)
+    ax[0].set_yticks([0.05, 0.1, 0.5, 1.0, 5.0, 10.0], ["0.05", "0.10", "0.50", "1.00", "5.00", "10.00"])
+    ax[0].set_ylim(0.01, 10.0)
+    #ax[0].yaxis.set_label_coords(-0.11, 0.0)
+    ax[0].set_ylabel("Energy per Synaptic Operation [µJ]", fontsize=FONTSIZE) # , fontweight='bold'
+    #ax[0].yaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[0].tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+    #ax[0].tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH, right=True, top=True, direction='in')
+    ax[0].spines['left'].set_linewidth(AXISWIDTH)
+
+    ## other axes
+    ax[0].spines['top'].set_linewidth(AXISWIDTH)
+    ax[0].spines['right'].set_linewidth(AXISWIDTH)
+    plt.minorticks_off()
+
+    ## grid
+    ax[0].grid(True, which='both', linestyle='-', linewidth=0.4, alpha=0.5)
+
+    ## legend
+    # plt.legend(ncol=4, frameon=True, loc='upper center', bbox_to_anchor=(0.5, 1.327), fontsize=FONTSIZE, borderpad=0.1, columnspacing=0.01) #, borderpad=0.1, columnspacing=0.01, labelspacing=0.01)
+    ax[0].legend(loc='upper right', fontsize=FONTSIZE)
+
+    #plt.tight_layout()
+    Path(OUTPUT).mkdir(parents=True, exist_ok=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".png", format='png', dpi=PNG_DPI, transparent=True)
+    if PLOT:
+        plt.show()
+        plt.clf()
+    plt.clf()
+    plt.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Plot script')
