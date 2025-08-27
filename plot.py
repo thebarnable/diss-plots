@@ -121,6 +121,245 @@ def template():
     plt.close()
 
 
+def noisydecolle_results():
+    # from baseline experiments     
+    BASELINE_ACC_NMNIST=98.93161435
+    BASELINE_ACC_DVS=93.09027778
+
+    # check if data is mounted
+    ROOT="data_decolle"
+    if not os.path.isdir(ROOT) or len(os.listdir(ROOT)) == 0:
+        print("NoisyDECOLLE results not correctly mounted. Expected at ./data_decolle/. Mount with `sshfs stadtmann@gpu02:/mnt/data4tb/wahl/Benedikt_Wahl_Thesis data_decolle`")
+        exit(1)
+
+    def load_results(results_dir, dataset, noise_type):
+        # load results and save in map (results can be unordered, therefore map. conversion to array after)
+        dir=ROOT+"/"+results_dir+"/"+noise_type+"_"+dataset
+        results_map={}
+        noises = np.array([])
+        for file in os.listdir(dir):
+            tmp=file.split("_")
+            if tmp[0] != "benchmark":
+                print("Skipping " + file)
+                continue
+            
+            seed=int(tmp[1])
+            noise=float(tmp[-1].split(".npy")[0])
+            if noise > XLIMIT:
+                continue
+            if noise not in noises:
+                noises = np.append(noises, noise)
+            acc=np.load(dir+"/"+file)[0][2]  # 2: layer 2
+            if seed not in results_map:
+                results_map[seed] = []
+            results_map[seed].append((noise, acc))
+        
+        # convert and average results in numpy arrays
+        noises.sort()
+        accuracies = np.zeros([len(results_map.keys()), len(noises)])  # n_seeds x n_values
+        n_values=-1
+        for seed in results_map.keys():
+            if n_values==-1:
+                n_values=len(results_map[seed])
+            elif len(results_map[seed]) != n_values:
+                print("ERROR: number of values in {} ({}) does not equal previous values ({})".format(file, len(results_map[seed]), n_values))
+                exit(1)
+
+            for (noise, acc) in results_map[seed]:
+                idx=np.where(noises==noise)[0][0] # error check
+                accuracies[seed-1][idx]=acc
+
+        print("Noise values for " + noise_type + " on " + dataset + ": " + str(noises))
+        x = noises
+        y = accuracies.mean(axis=0)*100 # conversion to percent
+        y_mean = np.array(len(noises)*[BASELINE_ACC_NMNIST if dataset == "nmnist" else BASELINE_ACC_DVS])
+               
+        return x, y, y_mean
+
+    # params
+    FONTSIZE = 12
+    Y_MAJORTICKS_LABELSIZE = 12
+    X_MAJORTICKS_LABELSIZE = 12
+    MARKERSIZE = 8
+    FIGWIDTH = 6.3
+    AXISWIDTH = 1.0
+    X_MAJORTICKS_LENGTH = 10
+    Y_MAJORTICKS_LENGTH = 10
+    X_MAJORTICKS_WIDTH = 1.0
+    Y_MAJORTICKS_WIDTH = 1.0
+    FIGSIZE = (FIGWIDTH, FIGWIDTH * (9/16)) # (9/16)
+    NOISES = ["hot_pixels", "ba_noise", "mismatch", "spike_loss", "thermal_noise", "int_quantisation"]
+
+    # plot results
+    fig, ax = plt.subplots(3, 4, figsize=FIGSIZE, sharex=False) #, gridspec_kw={'height_ratios': [1, 2, 3, 2]}, figsize=(10,7))
+    fig.subplots_adjust(hspace=HSPACE)
+    if type(ax) is not list and type(ax) is not np.ndarray:
+        ax = [ax]
+
+    # options
+    XLABEL="Number of hot pixels [%]"
+    TITLE="Hot pixels"
+    RANGE=(0.03, 0.27)
+    RANGE_LABEL=(0.24, 0.2)
+    XLIMIT=1.0
+    RANGE_SOURCE="[2]"
+    INSET_POS=[0.5, 0.3, 0.35, 0.35] #left, bottom, width, height
+    INSET_RANGE = [1, 7]
+    # dvs:
+    #     INSET_POS=[0.5, 0.3, 0.35, 0.35] #left, bottom, width, height
+    #     INSET_RANGE = [1, 7]
+
+    x, y, y_mean = load_results("phase_2_testing_with_noise", "nmnist", "hot_pixels")
+
+    ax[0][0].plot(x, y, '-', color=BLUE, linewidth=LINEWIDTH, clip_on=False, markersize=MARKERSIZE)
+    ax[0][0].plot(x, y_mean, '--', color=RED, linewidth=LINEWIDTH, clip_on=False, markersize=MARKERSIZE)
+    ax[0][0].set_xlim([x[0], x[-1]])
+
+    if RANGE is not None:
+        ax[0][0].vlines(x=[RANGE[0], RANGE[1]], ymin=50, ymax=100, colors=YELLOW, ls='--', lw=2, clip_on=False)
+        ax[0][0].axvspan(RANGE[0], RANGE[1], alpha=0.5, color=YELLOW)
+
+    #fig.text(RANGE_LABEL[0], RANGE_LABEL[1], RANGE_SOURCE, ha='center', fontdict={'fontsize': FONTSIZE})
+    ax[0][0].set_title(TITLE, fontdict={'fontsize': FONTSIZE}, y=1)
+
+    #fig.set_size_inches(FIG_SIZE[0], FIG_SIZE[1])
+
+    # if noise_type=='ba_noise' or noise_type=='spike_loss' or noise_type=='hot_pixels':
+    #     x_ticks = ax.xaxis.get_major_ticks()
+    #     x_ticks[0].label1.set_visible(False) ## set first x tick label invisible
+    #     x_ticks[-1].label1.set_visible(False) ## set first x tick label invisible
+
+    ax[0][0].set_xticks([0.01, 0.1, 1.0], ["0.01", "0.1", "1.0"])
+    ax[0][0].set_xlim(0.01, 1)
+    #ax[0][0].xaxis.set_label_coords(0.0, -0.11)
+    ax[0][0].set_xlabel(XLABEL, fontsize=FONTSIZE) # , fontweight='bold'
+    #ax[0][0].xaxis.set_minor_locator(AutoMinorLocator(10))
+    ax[0][0].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+    # ax[0][0].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH, right=True, top=True, direction='in')
+    ax[0][0].spines['bottom'].set_linewidth(AXISWIDTH)        
+
+
+    # XLABEL="Rate of events [Hz]"
+    # XLIM=-1
+    # TITLE="Background activity"
+    # RANGE=(0.05, 1.5)
+    # RANGE_LABEL=(0.185, 0.2)
+    # XLIMIT=10.0
+    # YLABEL=""
+    # RANGE_SOURCE="[13]"
+    # if dataset=='nmnist':
+    #     INSET_POS=[0.5, 0.3, 0.35, 0.35] #left, bottom, width, height
+    #     INSET_RANGE = [1, 13]
+    # else:
+    #     INSET_POS=[0.5, 0.3, 0.35, 0.35] #left, bottom, width, height
+    #     INSET_RANGE = [1, 13]
+    #     DIR="phase_2_testing_with_noise"
+
+    #     XLABEL="Standard deviation"
+    #     XLIM=-1
+    #     TITLE="Mismatch"
+    #     RANGE=(0.1, 0.2)
+    #     RANGE_LABEL=(0.28, 0.2)
+    #     XLIMIT=10.0
+    #     RANGE_SOURCE="[3]"
+    #     if dataset=='nmnist':
+    #         YLABEL="Accuracy [%]"
+    #         INSET_POS=[0.5, 0.3, 0.35, 0.35] #left, bottom, width, height
+    #         INSET_RANGE = [1, 5]
+    #     else:
+    #         YLABEL=""
+    #         INSET_POS=[0.5, 0.3, 0.35, 0.35] #left, bottom, width, height
+    #         INSET_RANGE = [1, 5]
+    #         DIR="phase_2_testing_with_noise"
+
+    # XLABEL="Loss [%]"
+    # XLIM=[0, 100]
+    # TITLE="Spike loss"
+    # RANGE=(0, 5)
+    # RANGE_LABEL=(0.2, 0.2)
+    # XLIMIT=100
+    # YLABEL=""
+    # RANGE_SOURCE="[21]"
+    # if dataset=='nmnist':
+    #     INSET_POS=[0.5, 0.3, 0.35, 0.35] #left, bottom, width, height
+    #     INSET_RANGE=[0,2]
+    # else:
+    #     INSET_POS=[0.5, 0.3, 0.35, 0.35] #left, bottom, width, height
+    #     INSET_RANGE=[0,2]
+    #     DIR="phase_3_pytorch_testing"
+
+    for j, ax_rows in enumerate(ax):
+        for i, axis in enumerate(ax_rows):
+            ## y axis
+            axis.set_yticks([60, 70, 80, 90, 100])
+            axis.set_ylim(5, 100)
+            #axis.yaxis.set_label_coords(-0.11, 0.0)
+            if i==0:
+                axis.set_ylabel("Accuracy [%]", fontsize=FONTSIZE) # , fontweight='bold'
+            #axis.yaxis.set_minor_locator(AutoMinorLocator(10))
+            axis.tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+            #axis.tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH, right=True, top=True, direction='in')
+            axis.spines['left'].set_linewidth(AXISWIDTH)
+
+            ## other axes
+            axis.spines['top'].set_linewidth(AXISWIDTH)
+            axis.spines['right'].set_linewidth(AXISWIDTH)
+
+            ## grid
+            axis.grid(True, which='both', linestyle='-', linewidth=0.4, alpha=0.5)
+
+    # # inset
+    # if dataset=='nmnist':
+    #     ylim=[97, 100]
+    #     yticks=[98, 99]
+    # else:
+    #     ylim=[80, 100]
+    #     yticks=[85, 95]
+    #
+    # ax2 = fig.add_axes(INSET_POS)
+    # ax2.plot(x[INSET_RANGE[0]:INSET_RANGE[1]], y[INSET_RANGE[0]:INSET_RANGE[1]], lw=LINEWIDTH, color=LINECOLOR)
+    # ax2.plot(x[INSET_RANGE[0]:INSET_RANGE[1]], np.array((INSET_RANGE[1]-INSET_RANGE[0])*[BASELINE_ACC]), lw=LINEWIDTH, color=REFCOLOR, linestyle='--')  #
+    # #ax2.grid(color='gainsboro', linestyle='-', linewidth=1)
+    # ax2.set_facecolor('white')
+    # ax2.set_xlim([x[INSET_RANGE[0]], x[INSET_RANGE[1]-1]])
+    # ax2.set_ylim(ylim)
+    # ax2.tick_params(direction = 'in', top=True, right=True)
+    # ax2.set_yticks(yticks)
+    # for t in ax2.get_xmajorticklabels():
+    #     t.set_fontsize(TICKSIZE_SMALL)
+    # for t in ax2.get_ymajorticklabels():
+    #     t.set_fontsize(TICKSIZE_SMALL)
+    # [i.set_linewidth(FIG_LINEWIDTH) for i in ax2.spines.values()]
+
+    # if noise_type=='mismatch':
+    #     x_ticks = ax2.xaxis.get_major_ticks()
+    #     x_ticks[1].label1.set_visible(False) ## set first x tick label invisible
+    #     x_ticks[2].label1.set_visible(False) ## set first x tick label invisible
+    #     x_ticks[4].label1.set_visible(False) ## set first x tick label invisible
+    #     x_ticks[5].label1.set_visible(False) ## set first x tick label invisible
+    # elif noise_type=='ba_noise':
+    #     x_ticks = ax2.xaxis.get_major_ticks()
+    #     x_ticks[1].label1.set_visible(False) ## set first x tick label invisible
+    #     x_ticks[3].label1.set_visible(False) ## set first x tick label invisible
+    #     x_ticks[5].label1.set_visible(False) ## set first x tick label invisible
+    #     x_ticks[-1].label1.set_visible(False) ## set first x tick label invisible
+    # elif noise_type=='hot_pixels':
+    #     x_ticks = ax2.xaxis.get_major_ticks()
+    #     x_ticks[2].label1.set_visible(False) ## set first x tick label invisible
+    #     x_ticks[4].label1.set_visible(False) ## set first x tick label invisible
+
+    plt.tight_layout()
+    Path(OUTPUT).mkdir(parents=True, exist_ok=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".png", format='png', dpi=PNG_DPI, transparent=True)
+    if PLOT:
+        plt.show()
+        plt.clf()
+    plt.clf()
+    plt.close()
+
+
 def bnns_scaling():
     # params
     FONTSIZE = 12
