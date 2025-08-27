@@ -121,6 +121,478 @@ def template():
     plt.close()
 
 
+def noisydecolle_results():
+    # from baseline experiments     
+    BASELINE_ACC_NMNIST=98.93161435
+    BASELINE_ACC_DVS=93.09027778
+
+    # check if data is mounted
+    ROOT="data_dummy"
+    if not os.path.isdir(ROOT) or len(os.listdir(ROOT)) == 0:
+        print("NoisyDECOLLE results not correctly mounted. Expected at ./data_decolle/. Mount with `sshfs stadtmann@gpu02:/mnt/data4tb/wahl/Benedikt_Wahl_Thesis data_decolle`")
+        exit(1)
+    
+    def plot_res(axis, results_dir, dataset, noise_type, xlim, range_x, range_y, range_alpha, xticks, xticks_str, xlabel_pos, xlabel, inset_pos, range_y_inset):
+        def load_results(results_dir, dataset, noise_type, x_limit):
+            # load results and save in map (results can be unordered, therefore map. conversion to array after)
+            dir=ROOT+"/"+results_dir+"/"+noise_type+"_"+dataset
+            print(f"Loading results from {dir}")
+            results_map={}
+            noises = np.array([])
+            for file in os.listdir(dir):
+                tmp=file.split("_")
+                if tmp[0] != "benchmark":
+                    print("Skipping " + file)
+                    continue
+                
+                seed=int(tmp[1])
+                noise=float(tmp[-1].split(".npy")[0])
+                if noise > x_limit:
+                    continue
+                if noise not in noises:
+                    noises = np.append(noises, noise)
+                acc=np.load(dir+"/"+file)[0][2]  # 2: layer 2
+                if seed not in results_map:
+                    results_map[seed] = []
+                results_map[seed].append((noise, acc))
+            
+            # convert and average results in numpy arrays
+            noises.sort()
+            accuracies = np.zeros([len(results_map.keys()), len(noises)])  # n_seeds x n_values
+            n_values=-1
+            for seed in results_map.keys():
+                if n_values==-1:
+                    n_values=len(results_map[seed])
+                elif len(results_map[seed]) != n_values:
+                    print("ERROR: number of values in {} ({}) does not equal previous values ({})".format(file, len(results_map[seed]), n_values))
+                    exit(1)
+
+                for (noise, acc) in results_map[seed]:
+                    idx=np.where(noises==noise)[0][0] # error check
+                    accuracies[seed-1][idx]=acc
+
+            print("Noise values for " + noise_type + " on " + dataset + ": " + str(noises))
+            x = noises
+            y = accuracies.mean(axis=0)*100 # conversion to percent
+            y_mean = np.array(len(noises)*[BASELINE_ACC_NMNIST if dataset == "nmnist" else BASELINE_ACC_DVS])
+                
+            return x, y, y_mean
+
+        x, y, y_mean = load_results(results_dir, dataset, noise_type, xlim[1])
+
+        axis.plot(x, y, '-', color=BLUE, linewidth=LINEWIDTH, clip_on=True, markersize=MARKERSIZE)
+        axis.plot(x, y_mean, '--', color=RED, linewidth=LINEWIDTH, clip_on=True, markersize=MARKERSIZE)
+
+        if range_x is not None:
+            axis.vlines(x=[range_x[0], range_x[1]], ymin=range_y[0], ymax=range_y[1], colors=YELLOW, ls='--', lw=AXISWIDTH, clip_on=False)
+            axis.axvspan(range_x[0], range_x[1], alpha=range_alpha, color=YELLOW)
+
+        axis.set_xticks(xticks, xticks_str)
+        axis.set_xlim(*xlim)
+        axis.xaxis.set_label_coords(*xlabel_pos)
+        axis.set_xlabel(xlabel, fontsize=FONTSIZE) # , fontweight='bold'
+        axis.tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+
+        # inset
+        axins = zoomed_inset_axes(axis, zoom=3, borderpad=0)
+        bbox = axis.get_position()
+        axins.set_axes_locator(None)
+        axins.set_position([bbox.x0 + inset_pos[0]*bbox.width,
+                            bbox.y0 + inset_pos[1]*bbox.height,
+                            inset_pos[2]*bbox.width,
+                            inset_pos[3]*bbox.height])
+        axins.plot(x, y, '-', color=BLUE, linewidth=LINEWIDTH, markersize=MARKERSIZE)
+        axins.plot(x, y_mean, '--', color=RED, linewidth=LINEWIDTH, markersize=MARKERSIZE)
+
+        axins.set_facecolor('white')
+        axins.set_xlim(range_x[0], range_x[1])
+        axins.set_ylim(range_y_inset[0], range_y_inset[1])
+        axins.set_xticks([])
+        axins.set_yticks([])
+        for spine in axins.spines.values():
+            spine.set_linewidth(AXISWIDTH)
+            spine.set_edgecolor(GREY)
+
+        mark_inset(axis, axins, loc1=1, loc2=3, edgecolor=GREY, linewidth=AXISWIDTH) #, fc="none", ec="0.5" # connectors & rectangle
+
+    def plots_qat(axis, results_dir, dataset, noise_type, xlim, xticks, xticks_str, xlabel_pos, xlabel, noise_mul, max_noise, robust, legend_pos):  # others: int_quantisation, brevitas
+        def load_results(results_dir, noise_mul, max_noise, robust, noise_type):
+            # load results and save in map (results can be unordered, therefore map. conversion to array after)
+            results_map={}
+            test_noises = []
+            train_noises = []
+            train_noise_idx = 3 if robust != 'nat' else 4
+            test_noise_idx = -3 if "quantisation" in noise_type and robust != 'nat' else -1
+            for file in os.listdir(results_dir):
+                tmp=file.split("_")
+                if tmp[0] != "benchmark" :
+                    print("Skipping " + file)
+                    continue
+                
+                seed=int(tmp[1])
+                test_noise=noise_mul*float(tmp[test_noise_idx].split(".npy")[0])
+                if test_noise > max_noise:
+                    continue
+
+                if robust=='nat':
+                    train_noise=noise_mul*float(tmp[train_noise_idx])
+                else:
+                    train_noise=float(tmp[train_noise_idx])
+
+                if robust=='dropout' and train_noise in [0.65, 0.6, 0.45, 0.55]:
+                    continue
+
+                if test_noise not in test_noises:
+                    test_noises.append(test_noise)
+                
+                if "quantisation" in noise_type and robust == 'nat':
+                    train_noise=int(train_noise)
+                if len(tmp) == 10 and "percentile" not in file:  #  ... dont ask
+                    percentage=float(tmp[6])
+                else:
+                    percentage=-1
+                train_noise_tuple=(train_noise, percentage)
+                if train_noise_tuple not in train_noises:
+                    train_noises.append(train_noise_tuple)
+                
+                acc=np.load(results_dir+"/"+file)[0][2]  # 2: layer 2
+                if seed not in results_map:
+                    results_map[seed] = []
+                results_map[seed].append((train_noise_tuple, test_noise, acc))
+            
+            # convert and average results in numpy arrays
+            test_noises.sort(reverse="quantisation" in noise_type)
+            train_noises.sort(reverse="quantisation" in noise_type)
+            accuracies = np.zeros([len(results_map.keys()), len(train_noises), len(test_noises)])  # n_seeds x train_noise x test_noise
+            n_values=-1
+            for seed in results_map.keys():
+                if n_values==-1:
+                    n_values=len(results_map[seed])
+                elif len(results_map[seed]) != n_values:
+                    print("ERROR: number of values in {} ({}) does not equal previous values ({})".format(file, len(results_map[seed]), n_values))
+                    exit(1)
+
+                for (train_noise_tuple, test_noise, acc) in results_map[seed]:
+                    idx_train=train_noises.index(train_noise_tuple)
+                    idx_test=test_noises.index(test_noise)
+                    accuracies[seed-1][idx_train][idx_test]=acc
+
+            print("Noise values for " + noise_type + " on " + dataset + ": " + str(test_noises))
+            x = test_noises
+            y_mean = np.array(len(x)*[BASELINE_ACC_NMNIST if dataset == "nmnist" else BASELINE_ACC_DVS])
+            y_all = accuracies.mean(axis=0)*100 # conversion to percent  train_noise x test_noise
+
+            return train_noises, x, y_mean, y_all
+
+        if "quantisation" not in noise_type and noise_type != "thermal_noise":
+            print(f"Error: wrong noise type for plots_qat (got: {noise_type})")
+            exit(1)
+
+        colors_qat = [BLUE, RED, GREEN, YELLOW,VIOLET,GREY]
+        train_noises, x, y_mean, y_all = load_results(results_dir, noise_mul, max_noise, robust, noise_type)
+
+        for i,y in enumerate(y_all):
+            if train_noises[i][1] != -1:
+                label_p=",p="+str(train_noises[i][1])
+            else:
+                label_p=""
+            
+            if noise_type == "thermal_noise":
+                if robust=='nat':
+                    if dataset=='nmnist' or train_noises[i][0] == 0.0:
+                        label="σ="+str(train_noises[i][0])
+                    else:
+                        label="σ="+str(train_noises[i][0])+"e-3"
+                elif robust=='dropout':
+                    label="dropout = " + str(train_noises[i][0])
+                elif robust=='l2':
+                    label="λ = " + str(train_noises[i][0])
+            else:
+                if robust=='nat':
+                    label=str(train_noises[i][0])+"b"+label_p
+                elif robust=='dropout':
+                    label="dropout = " + str(train_noises[i][0])
+                elif robust=='l2':
+                    label="λ = " + str(train_noises[i][0])
+            axis.plot(x, y, '-', linewidth=LINEWIDTH, clip_on=True, markersize=MARKERSIZE, label=label, color=colors_qat[i])
+
+        axis.plot(x, y_mean, '--', color=RED, linewidth=LINEWIDTH, clip_on=True, markersize=MARKERSIZE)
+        axis.legend(loc=legend_pos, prop={'size': FONTSIZE_LEGEND}, title="Training with", title_fontsize=FONTSIZE_LEGEND)
+
+        axis.set_xticks(xticks, xticks_str)
+        if xlim is None:
+            axis.set_xlim([x[0], x[-1]])
+        else:
+            axis.set_xlim(*xlim)
+        axis.xaxis.set_label_coords(*xlabel_pos)
+        axis.set_xlabel(xlabel, fontsize=FONTSIZE) # , fontweight='bold'
+        axis.tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+
+    # params
+    FONTSIZE = 10
+    FONTSIZE_LEGEND = 8
+    Y_MAJORTICKS_LABELSIZE = 8
+    X_MAJORTICKS_LABELSIZE = 8
+    MARKERSIZE = 8
+    FIGWIDTH = 6.3
+    AXISWIDTH = 1.0
+    X_MAJORTICKS_LENGTH = 5
+    Y_MAJORTICKS_LENGTH = 5
+    X_MAJORTICKS_WIDTH = 1.0
+    Y_MAJORTICKS_WIDTH = 1.0
+    HSPACE = 0.3
+    WSPACE = 0.3
+    FIGSIZE = (FIGWIDTH, FIGWIDTH * 1.5) # (9/16)
+    # NOISES = ["hot_pixels", "ba_noise", "mismatch", "spike_loss", "thermal_noise", "int_quantisation"]
+
+    # plot results
+    fig, ax = plt.subplots(5, 3, figsize=FIGSIZE, sharex=False, gridspec_kw={'height_ratios': [1, 1, 0.05, 1, 1]})
+    fig.subplots_adjust(hspace=HSPACE, wspace=WSPACE)
+    
+    if type(ax) is not list and type(ax) is not np.ndarray:
+        ax = [ax]
+
+    # options
+    ## hot pixels nmist
+    XLABEL="Hot pixels [%]"
+    RANGE_X=(0.03, 0.27)
+    RANGE_Y=(50, 100)
+    RANGE_LABEL=(0.24, 0.2)
+    RANGE_ALPHA=0.5
+    RANGE_SOURCE="[2]"
+    XTICKS=[0.2, 0.4, 0.6, 0.8]
+    XTICKS_STR=[str(i) for i in XTICKS]
+    XLIM=(0., 1.)
+    XLABEL_POS=(0.0, -0.12)
+    INSET_POS=[0.3, 0.2, 0.5, 0.5] #left, bottom, width, height
+    RANGE_Y_INSET = [98, 99.5]
+    RESULTS_DIR="phase_2_testing_with_noise"
+    DATASET="nmnist"
+    NOISE_TYPE="hot_pixels"
+    axis = ax[0][0]
+
+    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XTICKS_STR, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
+
+    ## background activity nmnist
+    XLABEL="Background activity [Hz]"
+    RANGE_X=(0.05, 1.5)
+    RANGE_Y=(50, 100)
+    RANGE_LABEL=(0.24, 0.2)
+    RANGE_ALPHA=0.5
+    RANGE_SOURCE="[2]"
+    XTICKS=[2, 4, 6, 8]
+    XTICKS_STR=[str(i) for i in XTICKS]
+    XLIM=(0., 10.)
+    XLABEL_POS=(0.0, -0.12)
+    INSET_POS=[0.3, 0.2, 0.5, 0.5] #left, bottom, width, height
+    RANGE_Y_INSET = [98, 99.5]
+    RESULTS_DIR="phase_2_testing_with_noise"
+    DATASET="nmnist"
+    NOISE_TYPE="ba_noise"
+    axis = ax[0][1]
+
+    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XTICKS_STR, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
+
+
+    ## Mismatch nmnist
+    XLABEL="Mismatch [σ]"
+    RANGE_X=(0.1, 0.2)
+    RANGE_Y=(50, 100)
+    RANGE_LABEL=(0.24, 0.2)
+    RANGE_ALPHA=0.5
+    RANGE_SOURCE="[2]"
+    XTICKS=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+    XTICKS_STR=["", "0.2", "", "0.4", "", "0.6"]
+    XLIM=(0., 0.7)
+    XLABEL_POS=(0.0, -0.12)
+    INSET_POS=[0.3, 0.2, 0.5, 0.5] #left, bottom, width, height
+    RANGE_Y_INSET = [98, 99.5]
+    RESULTS_DIR="phase_2_testing_with_noise"
+    DATASET="nmnist"
+    NOISE_TYPE="mismatch"
+    axis = ax[0][2]
+
+    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XTICKS_STR, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
+
+    ## Spike loss nmnist
+    XLABEL="Spike loss [%]"
+    RANGE_X=(0, 5)
+    RANGE_Y=(50, 100)
+    RANGE_LABEL=(0.24, 0.2)
+    RANGE_ALPHA=0.5
+    RANGE_SOURCE="[2]"
+    XTICKS=[20, 40, 60, 80]
+    XTICKS_STR=[str(i) for i in XTICKS]
+    XLIM=(0., 100.)
+    XLABEL_POS=(0.0, -0.12)
+    INSET_POS=[0.3, 0.2, 0.5, 0.5] #left, bottom, width, height
+    RANGE_Y_INSET = [98, 99.5]
+    RESULTS_DIR="phase_3_pytorch_testing"
+    DATASET="nmnist"
+    NOISE_TYPE="spike_loss"
+    axis = ax[1][0]
+
+    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XTICKS_STR, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
+
+    ## hot pixels dvs
+    XLABEL="Hot pixels [%]"
+    RANGE_X=(0.03, 0.27)
+    RANGE_Y=(50, 100)
+    RANGE_LABEL=(0.24, 0.2)
+    RANGE_ALPHA=0.5
+    RANGE_SOURCE="[2]"
+    XTICKS=[0.2, 0.4, 0.6, 0.8]
+    XTICKS_STR=[str(i) for i in XTICKS]
+    XLIM=(0., 1.)
+    XLABEL_POS=(0.0, -0.12)
+    INSET_POS=[0.3, 0.2, 0.5, 0.5] #left, bottom, width, height
+    RANGE_Y_INSET = [80, 95]
+    RESULTS_DIR="phase_2_testing_with_noise"
+    DATASET="dvs"
+    NOISE_TYPE="hot_pixels"
+    axis = ax[3][0]
+
+    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XTICKS_STR, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
+
+    ## background activity dvs
+    XLABEL="Background activity [Hz]"
+    RANGE_X=(0.05, 1.5)
+    RANGE_Y=(50, 100)
+    RANGE_LABEL=(0.24, 0.2)
+    RANGE_ALPHA=0.5
+    RANGE_SOURCE="[2]"
+    XTICKS=[2, 4, 6, 8]
+    XTICKS_STR=[str(i) for i in XTICKS]
+    XLIM=(0., 10.)
+    XLABEL_POS=(0.0, -0.12)
+    INSET_POS=[0.3, 0.2, 0.5, 0.5] #left, bottom, width, height
+    RANGE_Y_INSET = [80, 95]
+    RESULTS_DIR="phase_2_testing_with_noise"
+    DATASET="dvs"
+    NOISE_TYPE="ba_noise"
+    axis = ax[3][1]
+
+    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XTICKS_STR, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
+
+
+    ## Mismatch dvs
+    XLABEL="Mismatch [σ]"
+    RANGE_X=(0.1, 0.2)
+    RANGE_Y=(50, 100)
+    RANGE_LABEL=(0.24, 0.2)
+    RANGE_ALPHA=0.5
+    RANGE_SOURCE="[2]"
+    XTICKS=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+    XTICKS_STR=["", "0.2", "", "0.4", "", "0.6"]
+    XLIM=(0., 0.7)
+    XLABEL_POS=(0.0, -0.12)
+    INSET_POS=[0.3, 0.2, 0.5, 0.5] #left, bottom, width, height
+    RANGE_Y_INSET = [80, 95]
+    RESULTS_DIR="phase_2_testing_with_noise"
+    DATASET="dvs"
+    NOISE_TYPE="mismatch"
+    axis = ax[3][2]
+
+    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XTICKS_STR, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
+
+    ## Spike loss dvs
+    XLABEL="Spike loss [%]"
+    RANGE_X=(0, 5)
+    RANGE_Y=(50, 100)
+    RANGE_LABEL=(0.24, 0.2)
+    RANGE_ALPHA=0.5
+    RANGE_SOURCE="[2]"
+    XTICKS=[20, 40, 60, 80]
+    XTICKS_STR=[str(i) for i in XTICKS]
+    XLIM=(0., 100.)
+    XLABEL_POS=(0.0, -0.12)
+    INSET_POS=[0.3, 0.2, 0.5, 0.5] #left, bottom, width, height
+    RANGE_Y_INSET = [80, 95]
+    RESULTS_DIR="phase_3_pytorch_testing"
+    DATASET="dvs"
+    NOISE_TYPE="spike_loss"
+    axis = ax[4][0]
+
+    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XTICKS_STR, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
+
+    ## Thermal noise nmnist
+    XLABEL="Thermal noise [σ]"
+    NOISE_MUL=1
+    RESULTS_DIR=ROOT+"/phase_4_robustness/"+"nmnist_test_thermal_noise_train"
+    LEGEND_POS='lower left'
+    MAX_NOISE=30.0
+    XTICKS=[0, 1, 2, 3, 4, 5]
+    XTICKS_STR=[str(i) for i in XTICKS]
+    XLIM=(0, 5)
+    XLABEL_POS=(0.0, -0.12)
+    DATASET="nmnist"
+    NOISE_TYPE="thermal_noise"
+    ROBUST="nat"
+    axis = ax[1][1]
+
+    plots_qat(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, XTICKS, XTICKS_STR, XLABEL_POS, XLABEL, NOISE_MUL, MAX_NOISE, ROBUST, LEGEND_POS)  # others: int_quantisation, brevitas
+
+    ## Quantization nmnist
+    XLABEL="Weight quantization [bits]"
+    NOISE_MUL=1
+    RESULTS_DIR=ROOT+"/phase_4_robustness/"+"nmnist_test_int_quantisation/nmnist"
+    LEGEND_POS='lower left'
+    MAX_NOISE=30.0
+    XTICKS=[8, 7, 6, 5, 4, 3, 2]
+    XTICKS_STR=[str(i) for i in XTICKS]
+    XLIM=(8, 2)
+    XLABEL_POS=(0.0, -0.12)
+    DATASET="nmnist"
+    NOISE_TYPE="quantisation"
+    ROBUST="nat"
+    axis = ax[1][2]
+
+    plots_qat(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, XTICKS, XTICKS_STR, XLABEL_POS, XLABEL, NOISE_MUL, MAX_NOISE, ROBUST, LEGEND_POS)  # others: int_quantisation, brevitas
+
+
+    for j, ax_rows in enumerate(ax):
+        if j == 2:
+            continue
+        for i, axis in enumerate(ax_rows):
+            ## y axis
+            axis.set_ylim(50, 100)
+            #axis.yaxis.set_label_coords(-0.11, 0.0)
+            if i==0:
+                axis.set_ylabel("Accuracy [%]", fontsize=FONTSIZE) # , fontweight='bold'
+                axis.set_yticks([60, 70, 80, 90, 100])
+            else:
+                axis.set_yticks([60, 70, 80, 90, 100], ["", "", "", "", ""])
+            #axis.yaxis.set_minor_locator(AutoMinorLocator(10))
+            axis.tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+            #axis.tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH, right=True, top=True, direction='in')
+            axis.spines['left'].set_linewidth(AXISWIDTH)
+            axis.spines['top'].set_linewidth(AXISWIDTH)
+            axis.spines['right'].set_linewidth(AXISWIDTH)
+            axis.spines['bottom'].set_linewidth(AXISWIDTH)
+
+            ## grid
+            axis.grid(True, which='both', linestyle='-', linewidth=0.4, alpha=0.5)
+
+    for axis in ax[2]:
+        axis.set_visible(False)
+
+    # set title string
+    ax[0][1].set_title("NMNIST", fontsize=12, fontweight='bold', color='black')
+    ax[3][1].set_title("DVSGesture", fontsize=12, fontweight='bold', color='black')
+
+    # plot and save figure
+    # plt.tight_layout()
+    Path(OUTPUT).mkdir(parents=True, exist_ok=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".png", format='png', dpi=PNG_DPI, transparent=True)
+    if PLOT:
+        plt.show()
+        plt.clf()
+    plt.clf()
+    plt.close()
+
+
 def bnns_scaling():
     # params
     FONTSIZE = 12
