@@ -968,6 +968,7 @@ def lif():
     plt.clf()
     plt.close()
 
+
 def neuroaix_pies():
     FONTSIZE = 8
     FIGWIDTH = 6.3 # 5.6
@@ -1319,33 +1320,56 @@ def neuroaix_util():
 
 
 def neuroaix_estim():
-    labels = ["23.9x", "20.4x", "20.3x", "16.6x", "12.7x", "11.0x", "10.9x"]  # , "4.1x"] #["", "", "", "", "", ""]
-    y = [0, 1, 2, 3, 4, 5, 6]
-    percs = ["...120 ns aurora latency",
-            "Latency model of neuroAIx",
-            "Measured neuroAIx",
-            "...256 neurons per node",
-            "...no DRAM\nlat. hiding",
-            "...6.4GB/s\nDRAM BW",
-            "...no long-hops"]  # , "Measured\nby\nHeittmann"]
+    # params
+    FONTSIZE = 12
+    Y_MAJORTICKS_LABELSIZE = 12
+    X_MAJORTICKS_LABELSIZE = 12
+    MARKERSIZE = 50
+    AXISWIDTH = 1.0
+    FIGWIDTH = 5.6 # 6.3
+    X_MAJORTICKS_LENGTH = 10
+    Y_MAJORTICKS_LENGTH = 10
+    X_MAJORTICKS_WIDTH = 1.0
+    Y_MAJORTICKS_WIDTH = 1.0
+    BOTTOM_WIDTH = AXISWIDTH
+    BOTTOM_POS = ('outward', 7)
+    FIGSIZE = (FIGWIDTH, FIGWIDTH * (2/3))
+
+    labels = ["24.7x", "20.3x", "16.6x", "12.7x", "11.0x", "10.9x"]  # , "4.1x"] #["", "", "", "", "", ""]
+    y = [0, 1, 2, 3, 4, 5]
+    percs = ["34 ns aurora latency",
+            "Baseline",
+            "256 neurons per node",
+            "no latency hiding",
+            "6.4GB/s bandwidth",
+            "no long-hops"]  # , "Measured\nby\nHeittmann"]
     # percs = ["27.9%", "22%", "8%", "31%", "33%", "100%", "40%", "10%"]
-    values = [23.9, 20.4, 20.3, 16.6, 12.7, 11.0, 10.9]  # , 4.1]
-    bl = "#6a85b0"  # 6aa8d4
-    gr = "#80996e"  # 6ad4a8
+    values = [24.7, 20.3, 16.6, 12.7, 11.0, 10.9]  # , 4.1]
     # barColors = ["grey","red","blue","grey","grey","grey","grey","blue"]
-    bar_colors = [bl, bl, gr, bl, bl, bl, bl]  # ,gr]
+    bar_colors = [BLUE, GREY, GREEN, RED, RED, BLUE]  # ,gr]
     # hatch = "/" # "--","+","*","\\","//","/","",""
     # barHatches = [hatch, "", "", hatch, hatch, hatch, hatch] #, ""]
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(1,1, figsize=FIGSIZE)
     [i.set_linewidth(1.5) for i in ax.spines.values()]
     plt.gca().xaxis.grid(True, color="gray", linestyle="-", zorder=0)
     p = plt.barh(y, values, color=bar_colors, zorder=3, edgecolor="w")  # "#6aa8d4" , hatch=barHatches
-    plt.bar_label(p, labels=percs, fontsize=14, label_type="center")  # , weight="bold")
-    plt.bar_label(p, labels=labels, fontsize=14)
-    plt.xticks(fontsize=14)
-    # plt.yticks(fontsize=14)
+    plt.bar_label(p, labels=percs, fontsize=FONTSIZE, label_type="center")  # , weight="bold")
+    plt.bar_label(p, labels=labels, fontsize=FONTSIZE)
+    plt.xticks(fontsize=FONTSIZE)
     plt.yticks([])
     plt.xlim(0, 31)
+
+    ax.set_xlabel("Acceleration", fontsize=FONTSIZE) # , fontweight='bold'
+    #ax[0].yaxis.set_minor_locator(AutoMinorLocator(10))
+    ax.tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+
+    ax.spines['top'].set_linewidth(AXISWIDTH)
+    ax.spines['right'].set_linewidth(AXISWIDTH)
+    ax.spines['bottom'].set_linewidth(AXISWIDTH)
+    ax.spines['left'].set_linewidth(AXISWIDTH)
+
+    ## grid
+    plt.grid(True, which='both', linestyle='-', linewidth=0.4, alpha=0.5)
 
     Path(OUTPUT).mkdir(parents=True, exist_ok=True)
     plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
@@ -1471,6 +1495,22 @@ def neuroaix_acc_scaling():
 
 
 def neuroaix_latency(scenario=2):
+    FONTSIZE = 12
+    FIGWIDTH = 6.3 # 5.6
+    FIGSIZE = (FIGWIDTH, FIGWIDTH * (9/16))
+    facecolor = "#eaeaf2"
+
+    colors = [RED, BLUE, GREEN, YELLOW, VIOLET]
+    colors_finegrain = [*REDS[0:2], *BLUES, *GREENS, *YELLOWS, *VIOLETS]
+
+    font_color = GREY
+    size = 0.3
+    rad = 0.7
+    annot_dist = 0.3
+    label_dist = 0.4
+
+    fig, ax = plt.subplots(1, 2, figsize=FIGSIZE, facecolor=facecolor)
+
     if scenario==0:  # current
         vals =   [97, 1, 2]
         vals_finegrain = ['0.03', '0.08', '0.16', '3.23', '94.46',
@@ -1572,29 +1612,23 @@ def neuroaix_latency(scenario=2):
         
         #title = "Latencies (faster synapse extraction + 800MB Ethernet) -> 3m40s"
 
-    font_color = GREY
-    size = 0.3
-    rad = 0.8
-
-    facecolor = '#eaeaf2'
-    fig, ax = plt.subplots(figsize=(15,9), facecolor=facecolor)
-    patches, texts = ax.pie(vals, 
+    patches, texts = ax[0].pie(vals, 
         radius=rad-size, 
         startangle=90,
         counterclock=False,
         colors=colors, 
         labels=None,
-        labeldistance=0.6,
-        textprops={'color':font_color, 'fontsize':8, 'weight':'bold'},
+        labeldistance=label_dist,
+        textprops={'color':font_color, 'fontsize':FONTSIZE, 'weight':'bold'},
         wedgeprops=dict(width=size, edgecolor='w'))
     
     for t in texts:
         t.set_horizontalalignment('center')
 
     if scenario==4:
-        plt.legend(patches, labels, fontsize=24, bbox_to_anchor=[0.3,1])
+        plt.legend(patches, labels, fontsize=FONTSIZE, bbox_to_anchor=[0.3,1])
     
-    patches, texts = ax.pie(vals_finegrain, 
+    patches, texts = ax[0].pie(vals_finegrain, 
         radius=rad, 
         startangle=90,
         counterclock=False,
@@ -1624,8 +1658,8 @@ def neuroaix_latency(scenario=2):
         horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
         connectionstyle = "angle,angleA=0,angleB={}".format(ang)
         kw["arrowprops"].update({"connectionstyle": connectionstyle})
-        ax.annotate(labels_finegrain[i]+" ("+percs_glob[i]+")", xy=(0.8*x, 0.8*y), xytext=(xdist*np.sign(x), ydist*y),
-                    horizontalalignment=horizontalalignment, fontsize=22, **kw)
+        ax[0].annotate(labels_finegrain[i]+" ("+percs_glob[i]+")", xy=(annot_dist*x, annot_dist*y), xytext=(xdist*np.sign(x), ydist*y),
+                    horizontalalignment=horizontalalignment, fontsize=FONTSIZE, **kw)
 
     for t in texts:
         t.set_horizontalalignment('center')
