@@ -177,22 +177,25 @@ def noisydecolle_results():
         return x, y, y_mean
 
     # params
-    FONTSIZE = 12
-    Y_MAJORTICKS_LABELSIZE = 12
-    X_MAJORTICKS_LABELSIZE = 12
+    FONTSIZE = 10
+    Y_MAJORTICKS_LABELSIZE = 8
+    X_MAJORTICKS_LABELSIZE = 8
     MARKERSIZE = 8
     FIGWIDTH = 6.3
     AXISWIDTH = 1.0
-    X_MAJORTICKS_LENGTH = 10
-    Y_MAJORTICKS_LENGTH = 10
+    X_MAJORTICKS_LENGTH = 5
+    Y_MAJORTICKS_LENGTH = 5
     X_MAJORTICKS_WIDTH = 1.0
     Y_MAJORTICKS_WIDTH = 1.0
-    FIGSIZE = (FIGWIDTH, FIGWIDTH * (9/16)) # (9/16)
+    HSPACE = 0.3
+    WSPACE = 0.3
+    FIGSIZE = (FIGWIDTH, FIGWIDTH * 0.75) # (9/16)
     NOISES = ["hot_pixels", "ba_noise", "mismatch", "spike_loss", "thermal_noise", "int_quantisation"]
 
     # plot results
     fig, ax = plt.subplots(3, 4, figsize=FIGSIZE, sharex=False) #, gridspec_kw={'height_ratios': [1, 2, 3, 2]}, figsize=(10,7))
-    fig.subplots_adjust(hspace=HSPACE)
+    fig.subplots_adjust(hspace=HSPACE, wspace=WSPACE)
+    
     if type(ax) is not list and type(ax) is not np.ndarray:
         ax = [ax]
 
@@ -220,23 +223,13 @@ def noisydecolle_results():
         ax[0][0].axvspan(RANGE[0], RANGE[1], alpha=0.5, color=YELLOW)
 
     #fig.text(RANGE_LABEL[0], RANGE_LABEL[1], RANGE_SOURCE, ha='center', fontdict={'fontsize': FONTSIZE})
-    ax[0][0].set_title(TITLE, fontdict={'fontsize': FONTSIZE}, y=1)
-
-    #fig.set_size_inches(FIG_SIZE[0], FIG_SIZE[1])
-
-    # if noise_type=='ba_noise' or noise_type=='spike_loss' or noise_type=='hot_pixels':
-    #     x_ticks = ax.xaxis.get_major_ticks()
-    #     x_ticks[0].label1.set_visible(False) ## set first x tick label invisible
-    #     x_ticks[-1].label1.set_visible(False) ## set first x tick label invisible
-
-    ax[0][0].set_xticks([0.01, 0.1, 1.0], ["0.01", "0.1", "1.0"])
-    ax[0][0].set_xlim(0.01, 1)
-    #ax[0][0].xaxis.set_label_coords(0.0, -0.11)
-    ax[0][0].set_xlabel(XLABEL, fontsize=FONTSIZE) # , fontweight='bold'
-    #ax[0][0].xaxis.set_minor_locator(AutoMinorLocator(10))
+    #ax[0][0].set_title(TITLE, fontdict={'fontsize': FONTSIZE}, y=1)
+    ax[0][0].set_xticks([0.2, 0.4, 0.6, 0.8])
+    ax[0][0].set_xlim(0., 1.)
+    ax[0][0].xaxis.set_label_coords(0.0, -0.15)
+    ax[0][0].set_xlabel("Hot pixels [%]", fontsize=FONTSIZE) # , fontweight='bold'
     ax[0][0].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
-    # ax[0][0].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH, right=True, top=True, direction='in')
-    ax[0][0].spines['bottom'].set_linewidth(AXISWIDTH)        
+    ax[0][0].spines['bottom'].set_linewidth(AXISWIDTH)
 
 
     # XLABEL="Rate of events [Hz]"
@@ -291,11 +284,13 @@ def noisydecolle_results():
     for j, ax_rows in enumerate(ax):
         for i, axis in enumerate(ax_rows):
             ## y axis
-            axis.set_yticks([60, 70, 80, 90, 100])
-            axis.set_ylim(5, 100)
+            axis.set_ylim(50, 100)
             #axis.yaxis.set_label_coords(-0.11, 0.0)
             if i==0:
                 axis.set_ylabel("Accuracy [%]", fontsize=FONTSIZE) # , fontweight='bold'
+                axis.set_yticks([60, 70, 80, 90, 100])
+            else:
+                axis.set_yticks([60, 70, 80, 90, 100], ["", "", "", "", ""])
             #axis.yaxis.set_minor_locator(AutoMinorLocator(10))
             axis.tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
             #axis.tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH, right=True, top=True, direction='in')
@@ -348,7 +343,7 @@ def noisydecolle_results():
     #     x_ticks[2].label1.set_visible(False) ## set first x tick label invisible
     #     x_ticks[4].label1.set_visible(False) ## set first x tick label invisible
 
-    plt.tight_layout()
+    # plt.tight_layout()
     Path(OUTPUT).mkdir(parents=True, exist_ok=True)
     plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
     plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
