@@ -175,6 +175,47 @@ def noisydecolle_results():
         y_mean = np.array(len(noises)*[BASELINE_ACC_NMNIST if dataset == "nmnist" else BASELINE_ACC_DVS])
                
         return x, y, y_mean
+    
+    def plot_res(axis, results_dir, dataset, noise_type, xlim, range_x, range_y, range_alpha, xticks, xlabel_pos, xlabel, inset_pos, range_y_inset):
+        x, y, y_mean = load_results(results_dir, dataset, noise_type, xlim[1])
+
+        axis.plot(x, y, '-', color=BLUE, linewidth=LINEWIDTH, clip_on=True, markersize=MARKERSIZE)
+        axis.plot(x, y_mean, '--', color=RED, linewidth=LINEWIDTH, clip_on=True, markersize=MARKERSIZE)
+        axis.set_xlim([x[0], x[-1]])
+
+        if range_x is not None:
+            axis.vlines(x=[range_x[0], range_x[1]], ymin=range_y[0], ymax=range_y[1], colors=YELLOW, ls='--', lw=AXISWIDTH, clip_on=False)
+            axis.axvspan(range_x[0], range_x[1], alpha=range_alpha, color=YELLOW)
+
+        #fig.text(RANGE_LABEL[0], RANGE_LABEL[1], RANGE_SOURCE, ha='center', fontdict={'fontsize': FONTSIZE})
+        axis.set_xticks(xticks)
+        axis.set_xlim(*xlim)
+        axis.xaxis.set_label_coords(*xlabel_pos)
+        axis.set_xlabel(xlabel, fontsize=FONTSIZE) # , fontweight='bold'
+        axis.tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+        axis.spines['bottom'].set_linewidth(AXISWIDTH)
+
+        # inset
+        axins = zoomed_inset_axes(axis, zoom=3, borderpad=0)
+        bbox = ax[0][0].get_position()
+        axins.set_axes_locator(None)
+        axins.set_position([bbox.x0 + inset_pos[0]*bbox.width,
+                            bbox.y0 + inset_pos[1]*bbox.height,
+                            inset_pos[2]*bbox.width,
+                            inset_pos[3]*bbox.height])
+        axins.plot(x, y, '-', color=BLUE, linewidth=LINEWIDTH, markersize=MARKERSIZE)
+        axins.plot(x, y_mean, '--', color=RED, linewidth=LINEWIDTH, markersize=MARKERSIZE)
+
+        axins.set_xlim(range_x[0], range_x[1])
+        axins.set_ylim(range_y_inset[0], range_y_inset[1])
+        axins.set_xticks([])
+        axins.set_yticks([])
+        for spine in axins.spines.values():
+            spine.set_linewidth(AXISWIDTH)
+            spine.set_edgecolor(GREY)
+
+        mark_inset(axis, axins, loc1=1, loc2=3, edgecolor=GREY, linewidth=AXISWIDTH) #, fc="none", ec="0.5" # connectors & rectangle
+
 
     # params
     FONTSIZE = 10
@@ -200,8 +241,8 @@ def noisydecolle_results():
         ax = [ax]
 
     # options
+    ## hot pixels nmist
     XLABEL="Hot pixels [%]"
-    TITLE="Hot pixels"
     RANGE_X=(0.03, 0.27)
     RANGE_Y=(50, 100)
     RANGE_LABEL=(0.24, 0.2)
@@ -209,7 +250,7 @@ def noisydecolle_results():
     RANGE_SOURCE="[2]"
     XTICKS=[0.2, 0.4, 0.6, 0.8]
     XLIM=(0., 1.)
-    XLABEL=(0.0, -0.15)
+    XLABEL_POS=(0.0, -0.15)
     INSET_POS=[0.3, 0.2, 0.5, 0.5] #left, bottom, width, height
     RANGE_Y_INSET = [95, 100]
     RESULTS_DIR="phase_2_testing_with_noise"
@@ -217,44 +258,27 @@ def noisydecolle_results():
     NOISE_TYPE="hot_pixels"
     axis = ax[0][0]
 
-    x, y, y_mean = load_results(RESULTS_DIR, DATASET, NOISE_TYPE, XLIM[1])
+    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
 
-    axis.plot(x, y, '-', color=BLUE, linewidth=LINEWIDTH, clip_on=True, markersize=MARKERSIZE)
-    axis.plot(x, y_mean, '--', color=RED, linewidth=LINEWIDTH, clip_on=True, markersize=MARKERSIZE)
-    axis.set_xlim([x[0], x[-1]])
+    ## background activity
+    XLABEL="Background activity [Hz]"
+    RANGE_X=(0.05, 1.5)
+    RANGE_Y=(50, 100)
+    RANGE_LABEL=(0.24, 0.2)
+    RANGE_ALPHA=0.5
+    RANGE_SOURCE="[2]"
+    XTICKS=[2, 4, 6, 8]
+    XLIM=(0., 10.)
+    XLABEL_POS=(0.0, -0.15)
+    INSET_POS=[0.3, 0.2, 0.5, 0.5] #left, bottom, width, height
+    RANGE_Y_INSET = [95, 100]
+    RESULTS_DIR="phase_2_testing_with_noise"
+    DATASET="nmnist"
+    NOISE_TYPE="ba_noise"
+    axis = ax[0][1]
 
-    if RANGE_X is not None:
-        axis.vlines(x=[RANGE_X[0], RANGE_X[1]], ymin=RANGE_Y[0], ymax=RANGE_Y[1], colors=YELLOW, ls='--', lw=AXISWIDTH, clip_on=False)
-        axis.axvspan(RANGE_X[0], RANGE_X[1], alpha=RANGE_ALPHA, color=YELLOW)
+    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
 
-    #fig.text(RANGE_LABEL[0], RANGE_LABEL[1], RANGE_SOURCE, ha='center', fontdict={'fontsize': FONTSIZE})
-    axis.set_xticks(XTICKS)
-    axis.set_xlim(*XLIM)
-    axis.xaxis.set_label_coords(*XLABEL)
-    axis.set_xlabel(XLABEL, fontsize=FONTSIZE) # , fontweight='bold'
-    axis.tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
-    axis.spines['bottom'].set_linewidth(AXISWIDTH)
-
-    # inset
-    axins = zoomed_inset_axes(ax[0][0], zoom=3, borderpad=0)
-    bbox = ax[0][0].get_position()
-    axins.set_axes_locator(None)
-    axins.set_position([bbox.x0 + INSET_POS[0]*bbox.width,
-                        bbox.y0 + INSET_POS[1]*bbox.height,
-                        INSET_POS[2]*bbox.width,
-                        INSET_POS[3]*bbox.height])
-    axins.plot(x, y, '-', color=BLUE, linewidth=LINEWIDTH, markersize=MARKERSIZE)
-    axins.plot(x, y_mean, '--', color=RED, linewidth=LINEWIDTH, markersize=MARKERSIZE)
-
-    axins.set_xlim(RANGE_X[0], RANGE_X[1])
-    axins.set_ylim(RANGE_Y_INSET[0], RANGE_Y_INSET[1])
-    axins.set_xticks([])
-    axins.set_yticks([])
-    for spine in axins.spines.values():
-        spine.set_linewidth(AXISWIDTH)
-        spine.set_edgecolor(GREY)
-
-    mark_inset(ax[0][0], axins, loc1=1, loc2=3, edgecolor=GREY, linewidth=AXISWIDTH) #, fc="none", ec="0.5" # connectors & rectangle
 
     # XLABEL="Rate of events [Hz]"
     # XLIM=-1
