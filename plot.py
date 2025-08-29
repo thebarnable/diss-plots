@@ -207,6 +207,7 @@ def noisydecolle_results():
         axins.plot(x, y, '-', color=BLUE, linewidth=LINEWIDTH, markersize=MARKERSIZE)
         axins.plot(x, y_mean, '--', color=RED, linewidth=LINEWIDTH, markersize=MARKERSIZE)
 
+        axins.set_facecolor('white')
         axins.set_xlim(range_x[0], range_x[1])
         axins.set_ylim(range_y_inset[0], range_y_inset[1])
         axins.set_xticks([])
