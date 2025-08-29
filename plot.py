@@ -127,7 +127,7 @@ def noisydecolle_results():
     BASELINE_ACC_DVS=93.09027778
 
     # check if data is mounted
-    ROOT="data_decolle"
+    ROOT="data_dummy"
     if not os.path.isdir(ROOT) or len(os.listdir(ROOT)) == 0:
         print("NoisyDECOLLE results not correctly mounted. Expected at ./data_decolle/. Mount with `sshfs stadtmann@gpu02:/mnt/data4tb/wahl/Benedikt_Wahl_Thesis data_decolle`")
         exit(1)
@@ -135,6 +135,7 @@ def noisydecolle_results():
     def load_results(results_dir, dataset, noise_type, x_limit):
         # load results and save in map (results can be unordered, therefore map. conversion to array after)
         dir=ROOT+"/"+results_dir+"/"+noise_type+"_"+dataset
+        print(f"Loading results from {dir}")
         results_map={}
         noises = np.array([])
         for file in os.listdir(dir):
@@ -176,7 +177,7 @@ def noisydecolle_results():
                
         return x, y, y_mean
     
-    def plot_res(axis, results_dir, dataset, noise_type, xlim, range_x, range_y, range_alpha, xticks, xlabel_pos, xlabel, inset_pos, range_y_inset):
+    def plot_res(axis, results_dir, dataset, noise_type, xlim, range_x, range_y, range_alpha, xticks, xticks_str, xlabel_pos, xlabel, inset_pos, range_y_inset):
         x, y, y_mean = load_results(results_dir, dataset, noise_type, xlim[1])
 
         axis.plot(x, y, '-', color=BLUE, linewidth=LINEWIDTH, clip_on=True, markersize=MARKERSIZE)
@@ -188,7 +189,7 @@ def noisydecolle_results():
             axis.axvspan(range_x[0], range_x[1], alpha=range_alpha, color=YELLOW)
 
         #fig.text(RANGE_LABEL[0], RANGE_LABEL[1], RANGE_SOURCE, ha='center', fontdict={'fontsize': FONTSIZE})
-        axis.set_xticks(xticks)
+        axis.set_xticks(xticks, xticks_str)
         axis.set_xlim(*xlim)
         axis.xaxis.set_label_coords(*xlabel_pos)
         axis.set_xlabel(xlabel, fontsize=FONTSIZE) # , fontweight='bold'
@@ -197,7 +198,7 @@ def noisydecolle_results():
 
         # inset
         axins = zoomed_inset_axes(axis, zoom=3, borderpad=0)
-        bbox = ax[0][0].get_position()
+        bbox = axis.get_position()
         axins.set_axes_locator(None)
         axins.set_position([bbox.x0 + inset_pos[0]*bbox.width,
                             bbox.y0 + inset_pos[1]*bbox.height,
@@ -216,7 +217,6 @@ def noisydecolle_results():
 
         mark_inset(axis, axins, loc1=1, loc2=3, edgecolor=GREY, linewidth=AXISWIDTH) #, fc="none", ec="0.5" # connectors & rectangle
 
-
     # params
     FONTSIZE = 10
     Y_MAJORTICKS_LABELSIZE = 8
@@ -230,11 +230,11 @@ def noisydecolle_results():
     Y_MAJORTICKS_WIDTH = 1.0
     HSPACE = 0.3
     WSPACE = 0.3
-    FIGSIZE = (FIGWIDTH, FIGWIDTH * 1.414) # (9/16)
-    NOISES = ["hot_pixels", "ba_noise", "mismatch", "spike_loss", "thermal_noise", "int_quantisation"]
+    FIGSIZE = (FIGWIDTH, FIGWIDTH * 1.5) # (9/16)
+    # NOISES = ["hot_pixels", "ba_noise", "mismatch", "spike_loss", "thermal_noise", "int_quantisation"]
 
     # plot results
-    fig, ax = plt.subplots(4, 3, figsize=FIGSIZE, sharex=False) #, gridspec_kw={'height_ratios': [1, 2, 3, 2]}, figsize=(10,7))
+    fig, ax = plt.subplots(5, 3, figsize=FIGSIZE, sharex=False, gridspec_kw={'height_ratios': [1, 1, 0.05, 1, 1]})
     fig.subplots_adjust(hspace=HSPACE, wspace=WSPACE)
     
     if type(ax) is not list and type(ax) is not np.ndarray:
@@ -249,18 +249,19 @@ def noisydecolle_results():
     RANGE_ALPHA=0.5
     RANGE_SOURCE="[2]"
     XTICKS=[0.2, 0.4, 0.6, 0.8]
+    XTICKS_STR=[str(i) for i in XTICKS]
     XLIM=(0., 1.)
-    XLABEL_POS=(0.0, -0.15)
+    XLABEL_POS=(0.0, -0.12)
     INSET_POS=[0.3, 0.2, 0.5, 0.5] #left, bottom, width, height
-    RANGE_Y_INSET = [95, 100]
+    RANGE_Y_INSET = [98, 99.5]
     RESULTS_DIR="phase_2_testing_with_noise"
     DATASET="nmnist"
     NOISE_TYPE="hot_pixels"
     axis = ax[0][0]
 
-    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
+    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XTICKS_STR, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
 
-    ## background activity
+    ## background activity nmnist
     XLABEL="Background activity [Hz]"
     RANGE_X=(0.05, 1.5)
     RANGE_Y=(50, 100)
@@ -268,68 +269,143 @@ def noisydecolle_results():
     RANGE_ALPHA=0.5
     RANGE_SOURCE="[2]"
     XTICKS=[2, 4, 6, 8]
+    XTICKS_STR=[str(i) for i in XTICKS]
     XLIM=(0., 10.)
-    XLABEL_POS=(0.0, -0.15)
+    XLABEL_POS=(0.0, -0.12)
     INSET_POS=[0.3, 0.2, 0.5, 0.5] #left, bottom, width, height
-    RANGE_Y_INSET = [95, 100]
+    RANGE_Y_INSET = [98, 99.5]
     RESULTS_DIR="phase_2_testing_with_noise"
     DATASET="nmnist"
     NOISE_TYPE="ba_noise"
     axis = ax[0][1]
 
-    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
+    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XTICKS_STR, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
 
 
-    # XLABEL="Rate of events [Hz]"
-    # XLIM=-1
-    # TITLE="Background activity"
-    # RANGE=(0.05, 1.5)
-    # RANGE_LABEL=(0.185, 0.2)
-    # XLIMIT=10.0
-    # YLABEL=""
-    # RANGE_SOURCE="[13]"
-    # if dataset=='nmnist':
-    #     INSET_POS=[0.5, 0.3, 0.35, 0.35] #left, bottom, width, height
-    #     INSET_RANGE = [1, 13]
-    # else:
-    #     INSET_POS=[0.5, 0.3, 0.35, 0.35] #left, bottom, width, height
-    #     INSET_RANGE = [1, 13]
-    #     DIR="phase_2_testing_with_noise"
+    ## Mismatch nmnist
+    XLABEL="Mismatch [σ]"
+    RANGE_X=(0.1, 0.2)
+    RANGE_Y=(50, 100)
+    RANGE_LABEL=(0.24, 0.2)
+    RANGE_ALPHA=0.5
+    RANGE_SOURCE="[2]"
+    XTICKS=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+    XTICKS_STR=["", "0.2", "", "0.4", "", "0.6"]
+    XLIM=(0., 0.7)
+    XLABEL_POS=(0.0, -0.12)
+    INSET_POS=[0.3, 0.2, 0.5, 0.5] #left, bottom, width, height
+    RANGE_Y_INSET = [98, 99.5]
+    RESULTS_DIR="phase_2_testing_with_noise"
+    DATASET="nmnist"
+    NOISE_TYPE="mismatch"
+    axis = ax[0][2]
 
-    #     XLABEL="Standard deviation"
-    #     XLIM=-1
-    #     TITLE="Mismatch"
-    #     RANGE=(0.1, 0.2)
-    #     RANGE_LABEL=(0.28, 0.2)
-    #     XLIMIT=10.0
-    #     RANGE_SOURCE="[3]"
-    #     if dataset=='nmnist':
-    #         YLABEL="Accuracy [%]"
-    #         INSET_POS=[0.5, 0.3, 0.35, 0.35] #left, bottom, width, height
-    #         INSET_RANGE = [1, 5]
-    #     else:
-    #         YLABEL=""
-    #         INSET_POS=[0.5, 0.3, 0.35, 0.35] #left, bottom, width, height
-    #         INSET_RANGE = [1, 5]
-    #         DIR="phase_2_testing_with_noise"
+    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XTICKS_STR, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
 
-    # XLABEL="Loss [%]"
-    # XLIM=[0, 100]
-    # TITLE="Spike loss"
-    # RANGE=(0, 5)
-    # RANGE_LABEL=(0.2, 0.2)
-    # XLIMIT=100
-    # YLABEL=""
-    # RANGE_SOURCE="[21]"
-    # if dataset=='nmnist':
-    #     INSET_POS=[0.5, 0.3, 0.35, 0.35] #left, bottom, width, height
-    #     INSET_RANGE=[0,2]
-    # else:
-    #     INSET_POS=[0.5, 0.3, 0.35, 0.35] #left, bottom, width, height
-    #     INSET_RANGE=[0,2]
-    #     DIR="phase_3_pytorch_testing"
+    ## Spike loss nmnist
+    XLABEL="Spike loss [%]"
+    RANGE_X=(0, 5)
+    RANGE_Y=(50, 100)
+    RANGE_LABEL=(0.24, 0.2)
+    RANGE_ALPHA=0.5
+    RANGE_SOURCE="[2]"
+    XTICKS=[20, 40, 60, 80]
+    XTICKS_STR=[str(i) for i in XTICKS]
+    XLIM=(0., 100.)
+    XLABEL_POS=(0.0, -0.12)
+    INSET_POS=[0.3, 0.2, 0.5, 0.5] #left, bottom, width, height
+    RANGE_Y_INSET = [98, 99.5]
+    RESULTS_DIR="phase_3_pytorch_testing"
+    DATASET="nmnist"
+    NOISE_TYPE="spike_loss"
+    axis = ax[1][0]
+
+    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XTICKS_STR, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
+
+    ## hot pixels dvs
+    XLABEL="Hot pixels [%]"
+    RANGE_X=(0.03, 0.27)
+    RANGE_Y=(50, 100)
+    RANGE_LABEL=(0.24, 0.2)
+    RANGE_ALPHA=0.5
+    RANGE_SOURCE="[2]"
+    XTICKS=[0.2, 0.4, 0.6, 0.8]
+    XTICKS_STR=[str(i) for i in XTICKS]
+    XLIM=(0., 1.)
+    XLABEL_POS=(0.0, -0.12)
+    INSET_POS=[0.3, 0.2, 0.5, 0.5] #left, bottom, width, height
+    RANGE_Y_INSET = [80, 95]
+    RESULTS_DIR="phase_2_testing_with_noise"
+    DATASET="dvs"
+    NOISE_TYPE="hot_pixels"
+    axis = ax[3][0]
+
+    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XTICKS_STR, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
+
+    ## background activity dvs
+    XLABEL="Background activity [Hz]"
+    RANGE_X=(0.05, 1.5)
+    RANGE_Y=(50, 100)
+    RANGE_LABEL=(0.24, 0.2)
+    RANGE_ALPHA=0.5
+    RANGE_SOURCE="[2]"
+    XTICKS=[2, 4, 6, 8]
+    XTICKS_STR=[str(i) for i in XTICKS]
+    XLIM=(0., 10.)
+    XLABEL_POS=(0.0, -0.12)
+    INSET_POS=[0.3, 0.2, 0.5, 0.5] #left, bottom, width, height
+    RANGE_Y_INSET = [80, 95]
+    RESULTS_DIR="phase_2_testing_with_noise"
+    DATASET="dvs"
+    NOISE_TYPE="ba_noise"
+    axis = ax[3][1]
+
+    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XTICKS_STR, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
+
+
+    ## Mismatch dvs
+    XLABEL="Mismatch [σ]"
+    RANGE_X=(0.1, 0.2)
+    RANGE_Y=(50, 100)
+    RANGE_LABEL=(0.24, 0.2)
+    RANGE_ALPHA=0.5
+    RANGE_SOURCE="[2]"
+    XTICKS=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+    XTICKS_STR=["", "0.2", "", "0.4", "", "0.6"]
+    XLIM=(0., 0.7)
+    XLABEL_POS=(0.0, -0.12)
+    INSET_POS=[0.3, 0.2, 0.5, 0.5] #left, bottom, width, height
+    RANGE_Y_INSET = [80, 95]
+    RESULTS_DIR="phase_2_testing_with_noise"
+    DATASET="dvs"
+    NOISE_TYPE="mismatch"
+    axis = ax[3][2]
+
+    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XTICKS_STR, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
+
+    ## Spike loss dvs
+    XLABEL="Spike loss [%]"
+    RANGE_X=(0, 5)
+    RANGE_Y=(50, 100)
+    RANGE_LABEL=(0.24, 0.2)
+    RANGE_ALPHA=0.5
+    RANGE_SOURCE="[2]"
+    XTICKS=[20, 40, 60, 80]
+    XTICKS_STR=[str(i) for i in XTICKS]
+    XLIM=(0., 100.)
+    XLABEL_POS=(0.0, -0.12)
+    INSET_POS=[0.3, 0.2, 0.5, 0.5] #left, bottom, width, height
+    RANGE_Y_INSET = [80, 95]
+    RESULTS_DIR="phase_3_pytorch_testing"
+    DATASET="dvs"
+    NOISE_TYPE="spike_loss"
+    axis = ax[4][0]
+
+    plot_res(axis, RESULTS_DIR, DATASET, NOISE_TYPE, XLIM, RANGE_X, RANGE_Y, RANGE_ALPHA, XTICKS, XTICKS_STR, XLABEL_POS, XLABEL, INSET_POS, RANGE_Y_INSET)
 
     for j, ax_rows in enumerate(ax):
+        if j == 2:
+            continue
         for i, axis in enumerate(ax_rows):
             ## y axis
             axis.set_ylim(50, 100)
@@ -351,46 +427,14 @@ def noisydecolle_results():
             ## grid
             axis.grid(True, which='both', linestyle='-', linewidth=0.4, alpha=0.5)
 
-    # # inset
-    # if dataset=='nmnist':
-    #     ylim=[97, 100]
-    #     yticks=[98, 99]
-    # else:
-    #     ylim=[80, 100]
-    #     yticks=[85, 95]
-    #
-    # ax2 = fig.add_axes(INSET_POS)
-    # ax2.plot(x[INSET_RANGE[0]:INSET_RANGE[1]], y[INSET_RANGE[0]:INSET_RANGE[1]], lw=LINEWIDTH, color=LINECOLOR)
-    # ax2.plot(x[INSET_RANGE[0]:INSET_RANGE[1]], np.array((INSET_RANGE[1]-INSET_RANGE[0])*[BASELINE_ACC]), lw=LINEWIDTH, color=REFCOLOR, linestyle='--')  #
-    # #ax2.grid(color='gainsboro', linestyle='-', linewidth=1)
-    # ax2.set_facecolor('white')
-    # ax2.set_xlim([x[INSET_RANGE[0]], x[INSET_RANGE[1]-1]])
-    # ax2.set_ylim(ylim)
-    # ax2.tick_params(direction = 'in', top=True, right=True)
-    # ax2.set_yticks(yticks)
-    # for t in ax2.get_xmajorticklabels():
-    #     t.set_fontsize(TICKSIZE_SMALL)
-    # for t in ax2.get_ymajorticklabels():
-    #     t.set_fontsize(TICKSIZE_SMALL)
-    # [i.set_linewidth(FIG_LINEWIDTH) for i in ax2.spines.values()]
+    for axis in ax[2]:
+        axis.set_visible(False)
 
-    # if noise_type=='mismatch':
-    #     x_ticks = ax2.xaxis.get_major_ticks()
-    #     x_ticks[1].label1.set_visible(False) ## set first x tick label invisible
-    #     x_ticks[2].label1.set_visible(False) ## set first x tick label invisible
-    #     x_ticks[4].label1.set_visible(False) ## set first x tick label invisible
-    #     x_ticks[5].label1.set_visible(False) ## set first x tick label invisible
-    # elif noise_type=='ba_noise':
-    #     x_ticks = ax2.xaxis.get_major_ticks()
-    #     x_ticks[1].label1.set_visible(False) ## set first x tick label invisible
-    #     x_ticks[3].label1.set_visible(False) ## set first x tick label invisible
-    #     x_ticks[5].label1.set_visible(False) ## set first x tick label invisible
-    #     x_ticks[-1].label1.set_visible(False) ## set first x tick label invisible
-    # elif noise_type=='hot_pixels':
-    #     x_ticks = ax2.xaxis.get_major_ticks()
-    #     x_ticks[2].label1.set_visible(False) ## set first x tick label invisible
-    #     x_ticks[4].label1.set_visible(False) ## set first x tick label invisible
+    # set title string
+    ax[0][1].set_title("NMNIST", fontsize=12, fontweight='bold', color='black')
+    ax[3][1].set_title("DVSGesture", fontsize=12, fontweight='bold', color='black')
 
+    # plot and save figure
     # plt.tight_layout()
     Path(OUTPUT).mkdir(parents=True, exist_ok=True)
     plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
