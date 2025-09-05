@@ -45,84 +45,46 @@ OUTPUT="plots"
 colors  = [BLUE,YELLOW,RED,GREEN,VIOLET, DARKRED, DARKBLUE, GREY, BLACK]
 linestyles = ['solid', 'dashed', 'dashdot', 'dotted']
 
-FIGSIZE = (10,8)
 HSPACE = 0.5
-LINEWIDTH = 2.5  # of plot
-AXISWIDTH = 2.0  # of axes
-FONTSIZE = 15
+LINEWIDTH = 1.5  # of plot
+AXISWIDTH = 1.0  # of axes
+FONTSIZE = 10
+FONTSIZE_TICKS = 8
 FONTSIZE_TITLE = 12
 
-X_MAJORTICKS_LENGTH = 15
-X_MINORTICKS_LENGTH = 5
-Y_MAJORTICKS_LENGTH = 15
-Y_MINORTICKS_LENGTH = 5
-X_MAJORTICKS_WIDTH = 2.0
+FIGWIDTH = 6.3
+FIGSIZE = (FIGWIDTH, FIGWIDTH)
+FIGSIZE_23 = (FIGWIDTH, (2/3)*FIGWIDTH)
+FIGSIZE_58 = (FIGWIDTH, (5/8)*FIGWIDTH)
+FIGSIZE_916 = (FIGWIDTH, (9/16)*FIGWIDTH)
+
+FIGWIDTH_S = 5.6
+FIGSIZE_S = (FIGWIDTH_S, FIGWIDTH_S)
+FIGSIZE_S_23 = (FIGWIDTH_S, (2/3)*FIGWIDTH_S)
+FIGSIZE_S_58 = (FIGWIDTH_S, (5/8)*FIGWIDTH_S)
+FIGSIZE_S_916 = (FIGWIDTH_S, (9/16)*FIGWIDTH_S)
+
+MARKERSIZE = 3
+X_MAJORTICKS_LENGTH = 5
+Y_MAJORTICKS_LENGTH = 5
+X_MINORTICKS_LENGTH = 2
+Y_MINORTICKS_LENGTH = 2
+X_MAJORTICKS_WIDTH = 1.0
+Y_MAJORTICKS_WIDTH = 1.0
 X_MINORTICKS_WIDTH = 0.5
-Y_MAJORTICKS_WIDTH = 2.0
 Y_MINORTICKS_WIDTH = 0.5
-X_MAJORTICKS_LABELSIZE = FONTSIZE
-Y_MAJORTICKS_LABELSIZE = FONTSIZE
+X_MAJORTICKS_LABELSIZE = 8
+Y_MAJORTICKS_LABELSIZE = 8
 
 BOTTOM_POS = ('outward', 15)
-BOTTOM_WIDTH = AXISWIDTH
-
 LEFT_POS = ('outward', 15)
-LEFT_WIDTH = AXISWIDTH
+
+# X_MAJORTICKS_LENGTH = 10
+# Y_MAJORTICKS_LENGTH = 10
+# X_MAJORTICKS_WIDTH = 1.0
+# Y_MAJORTICKS_WIDTH = 1.0
 
 PNG_DPI = 300
-
-
-def template():
-    # generate random data
-    x = np.linspace(0, 2, 100)
-    y = np.sin(2 * np.pi * x)
-    y[y<0] *= -1
-
-    # plot results
-    fig, ax = plt.subplots(1, 1, figsize=FIGSIZE) # , sharex=False, gridspec_kw={'height_ratios': [1, 2, 3, 2]}, figsize=(10,7))
-    fig.subplots_adjust(hspace=HSPACE)
-    if type(ax) is not list and type(ax) is not np.ndarray:
-        ax = [ax]
-
-    ax[0].plot(x, y, color=BLUE, label="Template", linewidth=LINEWIDTH, linestyle="solid", clip_on=False) # , drawstyle='steps-post'
-
-    ## x axis
-    ax[0].set_xticks([0, 1, 2])
-    ax[0].set_xlim(0, 2)
-    ax[0].xaxis.set_label_coords(0.0, -0.11)
-    ax[0].set_xlabel("x [unit]", fontsize=FONTSIZE, fontweight='bold')
-    ax[0].xaxis.set_minor_locator(AutoMinorLocator(10))
-    ax[0].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE)
-    ax[0].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH)
-    ax[0].spines['bottom'].set_position(BOTTOM_POS)
-    ax[0].spines['bottom'].set_linewidth(BOTTOM_WIDTH)
-
-    ## y axis
-    ax[0].set_yticks([0, 0.5, 1])
-    ax[0].set_ylim(0, 1)
-    ax[0].yaxis.set_label_coords(-0.11, 0.5)
-    ax[0].set_ylabel("y [unit]", fontsize=FONTSIZE, fontweight='bold')
-    ax[0].yaxis.set_minor_locator(AutoMinorLocator(10))
-    ax[0].tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE)
-    ax[0].tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH)
-    ax[0].spines['left'].set_position(LEFT_POS)
-    ax[0].spines['left'].set_linewidth(LEFT_WIDTH)
-
-    ## other axes
-    ax[0].spines['top'].set_visible(False)
-    ax[0].spines['right'].set_visible(False)
-
-    plt.tight_layout()
-    Path(OUTPUT).mkdir(parents=True, exist_ok=True)
-    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=True)
-    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=True)
-    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".png", format='png', dpi=PNG_DPI, transparent=True)
-    if PLOT:
-        plt.show()
-        plt.clf()
-    plt.clf()
-    plt.close()
-
 
 def noisydecolle_results():
     # from baseline experiments     
@@ -597,19 +559,6 @@ def noisydecolle_results():
 
 
 def bnns_scaling():
-    # params
-    FONTSIZE = 12
-    Y_MAJORTICKS_LABELSIZE = 12
-    X_MAJORTICKS_LABELSIZE = 12
-    MARKERSIZE = 8
-    AXISWIDTH = 1.0
-    FIGWIDTH = 5.6 # 6.3
-    X_MAJORTICKS_LENGTH = 10
-    Y_MAJORTICKS_LENGTH = 10
-    X_MAJORTICKS_WIDTH = 1.0
-    Y_MAJORTICKS_WIDTH = 1.0
-    FIGSIZE = (FIGWIDTH, FIGWIDTH * (9/16))
-
     # experiment data (from https://www.overleaf.com/project/5ef59a9907971a00016a551d (BNN paper project))
     x = np.array([2, 4, 8, 16, 32, 64])
 
@@ -618,7 +567,7 @@ def bnns_scaling():
     y_linear = np.array([0.03125, 0.0625, 0.125, 0.25, 0.5, 1])
 
     # plot results
-    fig, ax = plt.subplots(1, 1, figsize=FIGSIZE) # , sharex=False, gridspec_kw={'height_ratios': [1, 2, 3, 2]}, figsize=(10,7))
+    fig, ax = plt.subplots(1, 1, figsize=FIGSIZE_S_916) # , sharex=False, gridspec_kw={'height_ratios': [1, 2, 3, 2]}, figsize=(10,7))
     #fig.subplots_adjust(hspace=HSPACE)
     if type(ax) is not list and type(ax) is not np.ndarray:
         ax = [ax]
@@ -672,19 +621,6 @@ def bnns_scaling():
 
 
 def bnns_results():
-    # params
-    FONTSIZE = 12
-    Y_MAJORTICKS_LABELSIZE = 12
-    X_MAJORTICKS_LABELSIZE = 12
-    MARKERSIZE = 8
-    FIGWIDTH = 6.3
-    AXISWIDTH = 1.0
-    X_MAJORTICKS_LENGTH = 10
-    Y_MAJORTICKS_LENGTH = 10
-    X_MAJORTICKS_WIDTH = 1.0
-    Y_MAJORTICKS_WIDTH = 1.0
-    FIGSIZE = (FIGWIDTH, FIGWIDTH * (9/16)) # (9/16)
-
     # experiment data (from https://www.overleaf.com/project/5ef59a9907971a00016a551d (BNN paper project))
     cifar_1 = np.array([[0.917, 89.98], [0.690, 88.15], [0.917, 90.09]])
     cifar_2 = np.array([[2.633, 90.52], [10.281, 91.91]])
@@ -707,7 +643,7 @@ def bnns_results():
     mnist_8 = np.array([[0.597, 99.4]])
 
     # plot results
-    fig, ax = plt.subplots(1, 2, figsize=FIGSIZE, sharex=False, gridspec_kw={'width_ratios': [1, 1]}) #, figsize=(10,7))
+    fig, ax = plt.subplots(1, 2, figsize=FIGSIZE_916, sharex=False, gridspec_kw={'width_ratios': [1, 1]}) #, figsize=(10,7))
     fig.subplots_adjust(top=0.8, bottom=0.15)
     if type(ax) is not list and type(ax) is not np.ndarray:
         ax = [ax]
@@ -811,7 +747,7 @@ def bnns_results():
     ax[1].grid(True, which='both', linestyle='-', linewidth=0.4, alpha=0.5)
 
     ## legend
-    plt.legend(ncol=4, frameon=True, loc='upper center', bbox_to_anchor=(-0.25, 1.32), fontsize=FONTSIZE, borderpad=0.2, columnspacing=0.1)
+    plt.legend(ncol=4, frameon=True, loc='upper center', bbox_to_anchor=(-0.1, 1.25), fontsize=FONTSIZE, borderpad=0.2, columnspacing=0.1)
 
     #plt.tight_layout()
     Path(OUTPUT).mkdir(parents=True, exist_ok=True)
@@ -827,17 +763,6 @@ def bnns_results():
 
 def bnns_sota():
     # params
-    FONTSIZE = 12
-    Y_MAJORTICKS_LABELSIZE = 12
-    X_MAJORTICKS_LABELSIZE = 12
-    MARKERSIZE = 8
-    FIGWIDTH = 6.3
-    AXISWIDTH = 1.0
-    X_MAJORTICKS_LENGTH = 10
-    Y_MAJORTICKS_LENGTH = 10
-    X_MAJORTICKS_WIDTH = 1.0
-    Y_MAJORTICKS_WIDTH = 1.0
-    FIGSIZE = (FIGWIDTH, FIGWIDTH / 1.6) # (9/16)
     ARROWPROPS = dict(
         facecolor=GREY,     # Arrow color
         edgecolor=GREY,     # Border color of the arrow
@@ -865,7 +790,7 @@ def bnns_sota():
     data_13 = np.array([[65.697, 56.6], [166.30, 69.3], [334.52,73.3], [52.25, 70.6], [27.26, 72], [35.44, 77.3], [38.17, 67.4]])  # FP: (65.697, 56.6) (166.30, 69.3) (334.52,73.3) (52.25, 70.6) (27.26, 72) (35.44, 77.3) (38.17, 67.4)
 
     # plot results
-    fig, ax = plt.subplots(1, 1, figsize=FIGSIZE) #, figsize=(10,7))
+    fig, ax = plt.subplots(1, 1, figsize=FIGSIZE_58) #, figsize=(10,7))
     fig.subplots_adjust(top=0.8, bottom=0.15)
     if type(ax) is not list and type(ax) is not np.ndarray:
         ax = [ax]
@@ -985,7 +910,7 @@ def bnns_sota():
     plt.close()
 
 
-def sg():
+def background_sg():
     # override variables
     LINEWIDTH = 8.5
     X_MAJORTICKS_WIDTH = 4.5
@@ -1103,21 +1028,10 @@ def sg():
     plt.close()
 
 
-def stdp():
+def background_stdp():
     # params
-    FONTSIZE = 12
-    Y_MAJORTICKS_LABELSIZE = 12
-    X_MAJORTICKS_LABELSIZE = 12
-    MARKERSIZE = 50
-    AXISWIDTH = 1.0
-    FIGWIDTH = 5.6 # 6.3
-    X_MAJORTICKS_LENGTH = 10
-    Y_MAJORTICKS_LENGTH = 10
-    X_MAJORTICKS_WIDTH = 1.0
-    Y_MAJORTICKS_WIDTH = 1.0
-    BOTTOM_WIDTH = AXISWIDTH
     BOTTOM_POS = ('outward', 7)
-    FIGSIZE = (FIGWIDTH, FIGWIDTH * (2/3))
+    MARKERSIZE = 25
 
     # generate random data
     # Parameters
@@ -1198,7 +1112,7 @@ def stdp():
     X_AXIS_COORDS = (0.0, -0.35)
     Y_AXIS_COORDS = (-0.035, 0.5)
 
-    fig, ax = plt.subplots(5, 1, sharex=True, gridspec_kw={'height_ratios': [0.5, 1, 0.5, 1, 1]}, figsize=FIGSIZE)
+    fig, ax = plt.subplots(5, 1, sharex=True, gridspec_kw={'height_ratios': [0.5, 1, 0.5, 1, 1]}, figsize=FIGSIZE_23)
     #plt.rcParams['text.usetex'] = True
     fig.subplots_adjust(hspace=HSPACE)
     if type(ax) is not list and type(ax) is not np.ndarray:
@@ -1230,7 +1144,7 @@ def stdp():
     ax[1].set_ylabel("kj", fontsize=FONTSIZE)
     ax[1].tick_params(axis='y', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE)
     ax[1].spines['left'].set_position(BOTTOM_POS)
-    ax[1].spines['left'].set_linewidth(BOTTOM_WIDTH)
+    ax[1].spines['left'].set_linewidth(AXISWIDTH)
     ## x axis
     ax[1].set_xticks([])
     ax[1].tick_params(axis='x', bottom=False, labelbottom=False)
@@ -1267,7 +1181,7 @@ def stdp():
     ax[3].set_ylabel("ki", fontsize=FONTSIZE)
     ax[3].tick_params(axis='y', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE)
     ax[3].spines['left'].set_position(BOTTOM_POS)
-    ax[3].spines['left'].set_linewidth(BOTTOM_WIDTH)
+    ax[3].spines['left'].set_linewidth(AXISWIDTH)
     ## x axis
     ax[3].set_xticks([])
     ax[3].tick_params(axis='x', bottom=False, labelbottom=False)
@@ -1287,7 +1201,7 @@ def stdp():
     ax[4].set_ylabel("w", fontsize=FONTSIZE)
     ax[4].tick_params(axis='y', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE)
     ax[4].spines['left'].set_position(BOTTOM_POS)
-    ax[4].spines['left'].set_linewidth(BOTTOM_WIDTH)
+    ax[4].spines['left'].set_linewidth(AXISWIDTH)
     ## x axis
     ax[4].set_xticks([0, len(w)])
     ax[4].set_xlim(0, len(w))
@@ -1297,7 +1211,7 @@ def stdp():
     ax[4].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE)
     ax[4].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH)
     ax[4].spines['bottom'].set_position(BOTTOM_POS)
-    ax[4].spines['bottom'].set_linewidth(BOTTOM_WIDTH)
+    ax[4].spines['bottom'].set_linewidth(AXISWIDTH)
     ## other axes
     ax[4].spines['top'].set_visible(False)
     ax[4].spines['right'].set_visible(False)
@@ -1313,23 +1227,19 @@ def stdp():
     plt.close()    
 
 
-def lif():
+def background_lif():
     # params
     FONTSIZE = 15
     Y_MAJORTICKS_LABELSIZE = 15
     X_MAJORTICKS_LABELSIZE = 15
-    MARKERSIZE = 50
     AXISWIDTH = 1.0
     FIGWIDTH = 5.6 # 6.3
     X_MAJORTICKS_LENGTH = 10
     Y_MAJORTICKS_LENGTH = 10
     X_MAJORTICKS_WIDTH = 1.0
     Y_MAJORTICKS_WIDTH = 1.0
-    BOTTOM_WIDTH = AXISWIDTH
     BOTTOM_POS = ('outward', 4)
-    LEFT_WIDTH = AXISWIDTH
     LEFT_POS = ('outward', 6)
-    FIGSIZE = (FIGWIDTH, FIGWIDTH * (2/3))
 
     h     = 1 # ms
     K     = 101 # ms
@@ -1364,7 +1274,7 @@ def lif():
     #v = filtfilt(b, a, v[:,0])
 
     # plot results
-    fig, ax = plt.subplots(3, 1, figsize=FIGSIZE, sharex=True,gridspec_kw={'height_ratios': [0.2, 1, 0.2]})
+    fig, ax = plt.subplots(3, 1, figsize=FIGSIZE_23, sharex=True,gridspec_kw={'height_ratios': [0.2, 1, 0.2]})
     fig.subplots_adjust(hspace=0.2)
     if type(ax) is not list and type(ax) is not np.ndarray:
         ax = [ax]
@@ -1406,7 +1316,7 @@ def lif():
     ax[1].tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE)
     ax[1].tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH)
     ax[1].spines['left'].set_position(LEFT_POS)
-    ax[1].spines['left'].set_linewidth(LEFT_WIDTH)
+    ax[1].spines['left'].set_linewidth(AXISWIDTH)
     ## other axes
     ax[1].spines['top'].set_visible(False)
     ax[1].spines['right'].set_visible(False)
@@ -1422,7 +1332,7 @@ def lif():
     ax[2].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE)
     ax[2].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH)
     ax[2].spines['bottom'].set_position(BOTTOM_POS)
-    ax[2].spines['bottom'].set_linewidth(BOTTOM_WIDTH)
+    ax[2].spines['bottom'].set_linewidth(AXISWIDTH)
     ## y axis
     ax[2].set_yticks([])
     ax[2].tick_params(axis='y', bottom=False, labelbottom=False)
@@ -1797,18 +1707,7 @@ def neuroaix_util():
 def neuroaix_estim():
     # params
     FONTSIZE = 12
-    Y_MAJORTICKS_LABELSIZE = 12
     X_MAJORTICKS_LABELSIZE = 12
-    MARKERSIZE = 50
-    AXISWIDTH = 1.0
-    FIGWIDTH = 5.6 # 6.3
-    X_MAJORTICKS_LENGTH = 10
-    Y_MAJORTICKS_LENGTH = 10
-    X_MAJORTICKS_WIDTH = 1.0
-    Y_MAJORTICKS_WIDTH = 1.0
-    BOTTOM_WIDTH = AXISWIDTH
-    BOTTOM_POS = ('outward', 7)
-    FIGSIZE = (FIGWIDTH, FIGWIDTH * (2/3))
 
     labels = ["24.7x", "20.3x", "16.6x", "12.7x", "11.0x", "10.9x"]  # , "4.1x"] #["", "", "", "", "", ""]
     y = [0, 1, 2, 3, 4, 5]
@@ -1824,7 +1723,7 @@ def neuroaix_estim():
     bar_colors = [BLUE, GREY, GREEN, RED, RED, BLUE]  # ,gr]
     # hatch = "/" # "--","+","*","\\","//","/","",""
     # barHatches = [hatch, "", "", hatch, hatch, hatch, hatch] #, ""]
-    fig, ax = plt.subplots(1,1, figsize=FIGSIZE)
+    fig, ax = plt.subplots(1,1, figsize=FIGSIZE_S_23)
     [i.set_linewidth(1.5) for i in ax.spines.values()]
     plt.gca().xaxis.grid(True, color="gray", linestyle="-", zorder=0)
     p = plt.barh(y, values, color=bar_colors, zorder=3, edgecolor="w")  # "#6aa8d4" , hatch=barHatches
@@ -1858,19 +1757,6 @@ def neuroaix_estim():
 
 
 def neuroaix_acc_scaling():
-    # params
-    FONTSIZE = 12
-    Y_MAJORTICKS_LABELSIZE = 12
-    X_MAJORTICKS_LABELSIZE = 12
-    MARKERSIZE = 8
-    AXISWIDTH = 1.0
-    FIGWIDTH = 6.3
-    X_MAJORTICKS_LENGTH = 10
-    Y_MAJORTICKS_LENGTH = 10
-    X_MAJORTICKS_WIDTH = 1.0
-    Y_MAJORTICKS_WIDTH = 1.0
-    FIGSIZE = (FIGWIDTH, FIGWIDTH * (9/16))
-
     # code
     x = np.linspace(1, 80000, 100)
     x_mid = np.linspace(1, 8000, 100)
@@ -1900,7 +1786,7 @@ def neuroaix_acc_scaling():
     y_spinnaker = 1.0
 
 
-    fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
+    fig, ax = plt.subplots(1, 1, figsize=FIGSIZE_916)
     ax = [ax]
 
     ax[0].plot(x, y_nest, linewidth=LINEWIDTH, label='NEST (Intel Xeon)', color=GREY)
@@ -1942,7 +1828,7 @@ def neuroaix_acc_scaling():
                 #arrowprops=dict(arrowstyle = '-', connectionstyle = 'arc3',facecolor=GREY))
     ax[0].annotate('SpiNNaker', xy=(x_values[-1]-2000, y_spinnaker), xytext=(x_values[-1]-64000, y_spinnaker+0.2), color=GREY, fontsize=FONTSIZE)
                 #arrowprops=dict(arrowstyle = '-', connectionstyle = 'arc3',facecolor=GREY))
-    ax[0].annotate('NEST (AMD Epyc)', xy=(x_values[-1]-2000, y_epyc), xytext=(x_values[-1]-74000, y_epyc+0.5), color=GREY, fontsize=FONTSIZE)
+    ax[0].annotate('NEST (AMD Epyc)', xy=(x_values[-1]-2000, y_epyc), xytext=(x_values[-1]-73000, y_epyc+0.5), color=GREY, fontsize=FONTSIZE)
                 #arrowprops=dict(arrowstyle = '-', connectionstyle = 'arc3',facecolor=GREY))
 
     ax[0].tick_params(direction = 'in')
@@ -2151,28 +2037,6 @@ def neuroaix_latency(scenario=2):
 
 
 def neuroaix_sota():
-    # params
-    FONTSIZE_SMALL = 10
-    FONTSIZE = 12
-    FONTSIZE_BIG = 12
-    Y_MAJORTICKS_LABELSIZE = 12
-    X_MAJORTICKS_LABELSIZE = 12
-    MARKERSIZE = 8
-    FIGWIDTH = 6.3
-    AXISWIDTH = 1.0
-    X_MAJORTICKS_LENGTH = 10
-    Y_MAJORTICKS_LENGTH = 10
-    X_MAJORTICKS_WIDTH = 1.0
-    Y_MAJORTICKS_WIDTH = 1.0
-    FIGSIZE = (FIGWIDTH, FIGWIDTH) # (9/16)
-    ARROWPROPS = dict(
-        facecolor=GREY,     # Arrow color
-        edgecolor=GREY,     # Border color of the arrow
-        arrowstyle='-|>',   # Style of the arrow (e.g., '->', '-|>', etc.)
-        lw=1,               # Line width
-    )
-
-
     # neuroAIx (2023)	            20,36, 0,047
     # INC-3000 (2022) [17]	        4,06, 0,783
     # AMD EPYC (2022) [22]	        1,88, 0,48
@@ -2213,17 +2077,17 @@ def neuroaix_sota():
         ax = [ax]
 
     # refs & arrows
-    ax[0].annotate("neuroAIx [999]", xytext=(data_neuroaix[0]*0.2, data_neuroaix[1]*1.2), xy=(data_neuroaix[0]*0.2, data_neuroaix[1]*1.2), fontsize=FONTSIZE_BIG, weight='bold')
-    ax[0].annotate("INC-3000 [999]", xytext=(data_inc[0]*0.5, data_inc[1]*1.2), xy=(data_inc[0]*0.5, data_inc[1]*1.2), fontsize=FONTSIZE_SMALL)
-    ax[0].annotate("AMD Epyc [999]", xytext=(data_epyc[0]*0.6, data_epyc[1]*0.7), xy=(data_epyc[0]*0.6, data_epyc[1]*0.7), fontsize=FONTSIZE_SMALL)
-    ax[0].annotate("SpiNNaker [999]", xytext=(data_spinn19[0]*0.4, data_spinn19[1]*1.2), xy=(data_spinn19[0]*0.4, data_spinn19[1]*1.2), fontsize=FONTSIZE_SMALL)
-    ax[0].annotate("SpiNNaker [999]", xytext=(data_spinn18[0]*0.5, data_spinn18[1]*1.2), xy=(data_spinn18[0]*0.5, data_spinn18[1]*1.2), fontsize=FONTSIZE_SMALL)
-    ax[0].annotate("Intel Xeon [999]", xytext=(data_xeon[0]*0.5, data_xeon[1]*0.7), xy=(data_xeon[0]*0.5, data_xeon[1]*0.7), fontsize=FONTSIZE_SMALL)
-    ax[0].annotate("Nvidia V100 [999]", xytext=(data_v100[0]*0.2, data_v100[1]*0.7), xy=(data_v100[0]*0.2, data_v100[1]*0.7), fontsize=FONTSIZE_SMALL)
-    ax[0].annotate("Nvidia 1050 Ti [999]", xytext=(data_1050[0]*0.5, data_1050[1]*1.2), xy=(data_1050[0]*0.5, data_1050[1]*1.2), fontsize=FONTSIZE_SMALL)
-    ax[0].annotate("Nvidia Jetson [999]", xytext=(data_jetson[0]*0.3, data_jetson[1]*0.7), xy=(data_jetson[0]*0.3, data_jetson[1]*0.7), fontsize=FONTSIZE_SMALL)
-    ax[0].annotate("Nvidia K40v [999]", xytext=(data_k40c[0]*0.5, data_k40c[1]*1.2), xy=(data_k40c[0]*0.5, data_k40c[1]*1.2), fontsize=FONTSIZE_SMALL)
-    ax[0].annotate("Nvidia RTX 2080 Ti [999]", xytext=(data_2080[0]*0.2, data_2080[1]*0.7), xy=(data_2080[0]*0.2, data_2080[1]*0.7), fontsize=FONTSIZE_SMALL)
+    ax[0].annotate("neuroAIx [999]", xytext=(data_neuroaix[0]*0.2, data_neuroaix[1]*1.2), xy=(data_neuroaix[0]*0.2, data_neuroaix[1]*1.2), fontsize=FONTSIZE+1, weight='bold')
+    ax[0].annotate("INC-3000 [999]", xytext=(data_inc[0]*0.5, data_inc[1]*1.2), xy=(data_inc[0]*0.5, data_inc[1]*1.2), fontsize=FONTSIZE)
+    ax[0].annotate("AMD Epyc [999]", xytext=(data_epyc[0]*0.6, data_epyc[1]*0.7), xy=(data_epyc[0]*0.6, data_epyc[1]*0.7), fontsize=FONTSIZE)
+    ax[0].annotate("SpiNNaker [999]", xytext=(data_spinn19[0]*0.4, data_spinn19[1]*1.2), xy=(data_spinn19[0]*0.4, data_spinn19[1]*1.2), fontsize=FONTSIZE)
+    ax[0].annotate("SpiNNaker [999]", xytext=(data_spinn18[0]*0.5, data_spinn18[1]*1.2), xy=(data_spinn18[0]*0.5, data_spinn18[1]*1.2), fontsize=FONTSIZE)
+    ax[0].annotate("Intel Xeon [999]", xytext=(data_xeon[0]*0.5, data_xeon[1]*0.7), xy=(data_xeon[0]*0.5, data_xeon[1]*0.7), fontsize=FONTSIZE)
+    ax[0].annotate("Nvidia V100 [999]", xytext=(data_v100[0]*0.2, data_v100[1]*0.7), xy=(data_v100[0]*0.2, data_v100[1]*0.7), fontsize=FONTSIZE)
+    ax[0].annotate("Nvidia 1050 Ti [999]", xytext=(data_1050[0]*0.5, data_1050[1]*1.2), xy=(data_1050[0]*0.5, data_1050[1]*1.2), fontsize=FONTSIZE)
+    ax[0].annotate("Nvidia Jetson [999]", xytext=(data_jetson[0]*0.3, data_jetson[1]*0.7), xy=(data_jetson[0]*0.3, data_jetson[1]*0.7), fontsize=FONTSIZE)
+    ax[0].annotate("Nvidia K40v [999]", xytext=(data_k40c[0]*0.5, data_k40c[1]*1.2), xy=(data_k40c[0]*0.5, data_k40c[1]*1.2), fontsize=FONTSIZE)
+    ax[0].annotate("Nvidia RTX 2080 Ti [999]", xytext=(data_2080[0]*0.2, data_2080[1]*0.7), xy=(data_2080[0]*0.2, data_2080[1]*0.7), fontsize=FONTSIZE)
 
     # mnist
     ax[0].scatter(data_fpgas[:, 0], data_fpgas[:, 1], color=GREEN, marker='o', s=50, label="FPGA")
@@ -2274,6 +2138,7 @@ def neuroaix_sota():
         plt.clf()
     plt.clf()
     plt.close()
+
 
 def balance_example():
     # from https://github.com/RWTH-IDS/bsnn/sparch/dataloaders/spiking_datasets.py
@@ -2475,22 +2340,6 @@ def balance_example():
     # GREY = "#636363"
     # BLACK = "#000000"
 
-    FIGWIDTH = 6.3
-    FIGSIZE = (FIGWIDTH, (2/3)*FIGWIDTH) # (9/16)
-    MARKERSIZE = 3
-    FONTSIZE = 10
-    LINEWIDTH = 1.5
-    Y_MAJORTICKS_LABELSIZE = 8
-    X_MAJORTICKS_LABELSIZE = 8
-    AXISWIDTH = 1.0
-    X_MAJORTICKS_LENGTH = 5
-    Y_MAJORTICKS_LENGTH = 5
-    X_MINORTICKS_LENGTH = 2
-    Y_MINORTICKS_LENGTH = 2
-    X_MAJORTICKS_WIDTH = 1.0
-    Y_MAJORTICKS_WIDTH = 1.0
-    X_MINORTICKS_WIDTH = 0.5
-    Y_MINORTICKS_WIDTH = 0.5
     INSET_POS = [[0.3, 0.12, 0.125, 0.125], [0.7, 0.09, 0.125, 0.125]]
     XLIM = [[430, 550], [2800, 3000]]
     YLIM = [[40, 450], [-50, 200]]
