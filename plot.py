@@ -26,6 +26,7 @@ RED = "#D17171"
 YELLOW = "#F3A451"
 GREEN = "#7B9965"
 DARKGREEN = "#46663C"
+LIGHTBLUE ="#8FA3C7"
 BLUE = "#5E7DAF"
 DARKBLUE = "#3C5E8A"
 DARKRED = "#A84646"
@@ -2498,6 +2499,165 @@ def balance_example():
     plt.clf()
     plt.close()
 
+
+def balance_noise():   
+    def percentage_formatter(x, pos):
+        return f"{x * 100:.0f}" 
+
+    MARKERSIZE_X = 25
+    quants = list(range(4,13,1))
+    gauss = [10, 1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]
+
+    fig, ax = plt.subplots(2, 1, figsize=FIGSIZE)
+    fig.subplots_adjust(hspace=0.3)
+
+    # quant plot
+    ## get data
+    # folders_quant = ["results/noise_tests_fix2/quant"+str(i) for i in quants]
+    # folders_quant_ref = ["results/noise_tests_ref/quant"+str(i) for i in quants]
+    # folders_gauss = ["results/noise_tests_fix2/quant6_adc6_gauss"+str(i) for i in gauss]
+    # folders_gauss_ref = ["results/noise_tests_ref/quant6_adc6_gauss"+str(i) for i in gauss]
+    # x, y, y_ref = [], [], []
+    # for i,(folder, folder_ref) in enumerate(zip(folders_quant, folders_quant_ref)):
+    #     accs, accs_ref = [], []
+    #     for trial_folder in os.walk(folder):
+    #         if "results.pth" in trial_folder[2]:
+    #             results=torch.load(trial_folder[0]+"/results.pth", weights_only=False)
+    #             accs.append(results["test_acc"])
+    #     # for trial_folder in os.walk(folder_ref):
+    #     #     if "results.pth" in trial_folder[2]:
+    #     #         results=torch.load(trial_folder[0]+"/results.pth", weights_only=False)
+    #     #         accs_ref.append(results["test_acc"])
+    #     x.append(quants[i])
+    #     print(np.mean(accs))
+    #     y.append(np.mean(accs))
+    #     # y_ref.append(np.mean(accs_ref))
+            
+    # ax[0].plot(x, y_ref, color=BLACK, label="Baseline", linewidth=2.5, linestyle="solid", clip_on=False)
+    y     = [0.9158, 0.9142, 0.9119, 0.9023, 0.9119, 0.8623, 0.8207, 0.6701, 0.5600] # from claix: noise_tests_fix2/quantX
+    y_ref = [0.9214, 0.9214, 0.8595, 0.7865, 0.7373, 0.6960, 0.7206, 0.6507, 0.5036] # from claix: noise_tests_ref_fix/quantX
+    baseline = 0.9143
+    baseline_ref = 0.9357
+    x = list(reversed(quants)) #list(reversed(x))  # highest #bits first
+    ax[0].plot(x, y, color=BLUE, label="BSNN", linewidth=LINEWIDTH, linestyle="solid")
+    ax[0].plot(x, y_ref, color=BLACK, label="Baseline", linewidth=LINEWIDTH, linestyle="solid")
+    ax[0].axhline(y=baseline, color=LIGHTBLUE, ls='--', lw=LINEWIDTH,) # , label='BSNN w/o quant: 91.43%'
+    ax[0].axhline(y=baseline_ref, color=GREY, ls='--', lw=LINEWIDTH,) # , label='Baseline w/o quant: 93.57%'
+
+    ## x axis
+    xlims = [max(quants), min(quants)]
+    ax[0].set_xticks([12, 4])
+    ax[0].set_xlim(12, 4)
+    ax[0].xaxis.set_minor_locator(AutoMinorLocator(len(x)-1))
+    ax[0].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+    ax[0].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH, right=True, top=True, direction='in')
+    ax[0].spines['bottom'].set_linewidth(AXISWIDTH)
+    ax[0].set_xlabel("# Bits", fontsize=FONTSIZE)
+    ax[0].xaxis.set_label_coords(0.5, -0.04)
+
+    ## y axis
+    ylims = [0.5, 1]
+    ax[0].set_yticks(ylims)
+    ax[0].set_ylim(ylims[0], ylims[1])
+    ax[0].tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+    ax[0].tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH, right=True, top=True, direction='in')
+    ax[0].yaxis.set_minor_locator(AutoMinorLocator(5))
+    ax[0].spines['left'].set_linewidth(AXISWIDTH)
+    ax[0].yaxis.set_major_formatter(FuncFormatter(percentage_formatter))
+    ax[0].set_ylabel("Accuracy [%]", fontsize=FONTSIZE)
+    ax[0].yaxis.set_label_coords(-0.03, 0.5)
+
+    ## other axes
+    ax[0].spines['top'].set_linewidth(AXISWIDTH)
+    ax[0].spines['right'].set_linewidth(AXISWIDTH)
+
+    ## grid
+    ax[0].grid(True, which='both', linestyle='-', linewidth=0.4, alpha=0.5)
+
+    ## annotations
+    ax[0].annotate(f"{baseline_ref*100:.2f}%", xy=(4, baseline_ref), xytext=(4.9, baseline_ref*1.01), color = GREY, fontsize=FONTSIZE)
+    ax[0].annotate(f"{baseline*100:.2f}%", xy=(4, baseline), xytext=(4.9, baseline*0.96), color = LIGHTBLUE, fontsize=FONTSIZE)
+
+    x       = list(reversed(gauss))
+    y6b     = [0.8300, 0.8119, 0.8023, 0.7119, 0.6623, 0.6207, 0.5701, 0.5600] # from claix: noise_tests_fix2/quant6_adc6_gaussX
+    y6b_ref = [0.6906, 0.7595, 0.6865, 0.6873, 0.5960, 0.5206, 0.5507, 0.5036] # from claix: noise_tests_ref_fix/quant6_adc6_gaussX   
+    y8b     = [0.9001, 0.9333, 0.8923, 0.8919, 0.7998, 0.7575, 0.6311, 0.6600]
+    y8b_ref = [0.7110, 0.7002, 0.7365, 0.7101, 0.6920, 0.6139, 0.5204, 0.5129]
+    baseline_6b = 0.8207
+    baseline_6b_ref = 0.7206
+    baseline_8b = 0.9119
+    baseline_8b_ref = 0.7373
+
+    # # ax[1].plot(x, y_ref, color=BLACK, label="Baseline", linewidth=2.5, linestyle="solid", clip_on=False)
+    ax[1].plot(x, y6b, color=BLUE, label="BSNN (6b)", linewidth=LINEWIDTH, linestyle="solid")
+    ax[1].plot(x, y6b_ref, color=BLACK, label="Baseline (6b)", linewidth=LINEWIDTH, linestyle="solid")
+    ax[1].axhline(y=baseline_6b, color=LIGHTBLUE, ls='--', lw=LINEWIDTH)
+    ax[1].axhline(y=baseline_6b_ref, color=GREY, ls='--', lw=LINEWIDTH)
+
+    ax[1].plot(x, y8b, color=BLUE, label="BSNN (8b)", linewidth=LINEWIDTH, linestyle="solid",  marker='o', markersize=MARKERSIZE)
+    ax[1].plot(x, y8b_ref, color=BLACK, label="Baseline (8b)", linewidth=LINEWIDTH, linestyle="solid",  marker='o', markersize=MARKERSIZE)
+    ax[1].axhline(y=baseline_8b, color=LIGHTBLUE, ls='--', lw=LINEWIDTH,  marker='o', markersize=MARKERSIZE)
+    ax[1].axhline(y=baseline_8b_ref, color=GREY, ls='--', lw=LINEWIDTH,  marker='o', markersize=MARKERSIZE)
+
+    ## x axis
+    xlims = [min(gauss), max(gauss)]
+    ax[1].set_xscale('log')
+    ax[1].set_xticks(gauss)
+    ax[1].set_xlim(xlims[0], xlims[1])
+    ax[1].tick_params(axis='x', length=X_MAJORTICKS_LENGTH, width=X_MAJORTICKS_WIDTH, labelsize=X_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+    ax[1].tick_params(axis='x', which='minor', length=X_MINORTICKS_LENGTH, width=X_MINORTICKS_WIDTH, right=True, top=True, direction='in')
+    ax[1].spines['bottom'].set_linewidth(AXISWIDTH)
+    ax[1].set_xlabel("σ", fontsize=FONTSIZE)
+    ax[1].xaxis.set_label_coords(0.5, -0.04)
+
+    ## y axis
+    ylims = [0.5, 1]
+    ax[1].set_yticks(ylims)
+    ax[1].set_ylim(ylims[0], ylims[1])
+    ax[1].tick_params(axis='y', length=Y_MAJORTICKS_LENGTH, width=Y_MAJORTICKS_WIDTH, labelsize=Y_MAJORTICKS_LABELSIZE, right=True, top=True, direction='in')
+    ax[1].tick_params(axis='y', which='minor', length=Y_MINORTICKS_LENGTH, width=Y_MINORTICKS_WIDTH, right=True, top=True, direction='in')
+    ax[1].yaxis.set_minor_locator(AutoMinorLocator(5))
+    ax[1].spines['left'].set_linewidth(AXISWIDTH)
+    ax[1].yaxis.set_major_formatter(FuncFormatter(percentage_formatter))
+    ax[1].set_ylabel("Accuracy [%]", fontsize=FONTSIZE)
+    ax[1].yaxis.set_label_coords(-0.03, 0.5)
+
+    ## other axes
+    ax[1].spines['top'].set_linewidth(AXISWIDTH)
+    ax[1].spines['right'].set_linewidth(AXISWIDTH)
+
+    ## grid
+    ax[1].grid(True, which='major', linestyle='-', linewidth=0.4, alpha=0.5)    
+
+    ## annotations
+    ax[1].annotate(f"{baseline_6b*100:.2f}%", xy=(10, baseline_6b), xytext=(1.8, baseline_6b*1.01), color = LIGHTBLUE, fontsize=FONTSIZE)
+    ax[1].annotate(f"{baseline_6b_ref*100:.2f}%", xy=(10, baseline_6b_ref), xytext=(1.8, baseline_6b_ref*0.95), color = GREY, fontsize=FONTSIZE)
+    ax[1].annotate(f"{baseline_8b*100:.2f}%", xy=(10, baseline_8b), xytext=(1.8, baseline_8b*1.01), color = LIGHTBLUE, fontsize=FONTSIZE)
+    ax[1].annotate(f"{baseline_8b_ref*100:.2f}%", xy=(10, baseline_8b_ref), xytext=(1.8, baseline_8b_ref*1.01), color = GREY, fontsize=FONTSIZE)
+    
+    ax[0].scatter(6, baseline_6b, color = BLUE, marker='x', s=MARKERSIZE_X)
+    ax[0].scatter(6, baseline_6b_ref, color = BLACK, marker='x', s=MARKERSIZE_X)
+    ax[0].scatter(8, baseline_8b, color = BLUE, marker='x', s=MARKERSIZE_X)
+    ax[0].scatter(8, baseline_8b_ref, color = BLACK, marker='x', s=MARKERSIZE_X)
+    ax[0].annotate("⨯: used in noise experiments below", xy=(8.5, 0.52), xytext=(8.5, 0.52), color = BLACK, fontsize=FONTSIZE)
+
+    ## legend
+    ax[0].legend(loc='lower left', bbox_to_anchor=(0.0,0.0), fontsize=FONTSIZE, ncol=1)
+    ax[1].legend(loc='lower left', bbox_to_anchor=(0.0, 0.0), fontsize=FONTSIZE, ncol=2)
+
+    ax[0].set_title("A: Quantization", fontsize=FONTSIZE_TITLE, fontweight='bold')
+    ax[1].set_title("B: Gaussian on quantized network", fontsize=FONTSIZE_TITLE, fontweight='bold')
+
+    # save and plot
+    Path(OUTPUT).mkdir(parents=True, exist_ok=True)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".pdf", format='pdf', transparent=False)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".svg", format='svg', transparent=False)
+    plt.savefig(OUTPUT+"/"+inspect.stack()[0][3]+".png", format='png', dpi=PNG_DPI, transparent=False)
+    if PLOT:
+        plt.show()
+        plt.clf()
+    plt.clf()
+    plt.close() 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Plot script')
