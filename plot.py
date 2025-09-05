@@ -39,7 +39,6 @@ BLUES = ["#9ea5b0", "#8d9ab0", "#7b8fb0", "#6a85b0"]
 REDS = ["#d1bcbc", "#d1a7a7", "#d19292", "#d17d7d"]
 VIOLETS = ["#9a7c9f", "#a99fb1"]
 
-PLOT=True
 OUTPUT="plots"
 
 colors  = [BLUE,YELLOW,RED,GREEN,VIOLET, DARKRED, DARKBLUE, GREY, BLACK]
@@ -2277,6 +2276,8 @@ def neuroaix_sota():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Plot script')
     parser.add_argument('--function', '-f', default='lif', help='Plot function to call')
+    parser.add_argument('--plot', '-p', action='store_true', help='Activate plotting')
     args = parser.parse_args()
 
+    PLOT = args.plot
     locals()[args.function]()
