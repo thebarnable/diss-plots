@@ -1,4 +1,6 @@
 import torch
+import matplotlib
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter, AutoMinorLocator
 from matplotlib.patches import FancyArrow
